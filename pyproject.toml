@@ -1,0 +1,15 @@
+[project]
+name = "PwNo"
+version = "0.1.0"
+description = "Pwntools Extension that Just Works"
+authors = [
+    {name = "MuelNova", email = "n@ova.moe"},
+]
+dependencies = []
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
