@@ -27,7 +27,28 @@ _✨ Pwntools Extensions that Just Works! ✨_
 
 - [x] 开箱即用
 - [x] 完整的类型注解
+- [x] 好用简单的小工具
 - [ ] And more...
+
+## TL;DR
+
+### 一键缩写
+
+see [context](#context)
+
+```python
+from pwn import *
+from pwno import *
+
+p = process(['/path/to/your/elf'])
+
+sl(b'cat /flag')
+ia()  # 无需设置！
+```
+
+### And More ...
+
+
 
 ## Installation
 
@@ -39,11 +60,11 @@ _✨ Pwntools Extensions that Just Works! ✨_
 
 <details>
 <summary>本地安装</summary>
+
     git clone https://github.com/MuelNova/PwNo
     cd PwNo
     pip install -e .
 </details>
-
 
 ## Usage
 
@@ -60,6 +81,19 @@ from pwno import *
 ### context
 
 PwNo 为脚本实现了缩写功能以加速你的脚本编写，而你不需要做任何操作
+> 默认的导出：
+>
+> ​        >>> send  = process.send
+> ​        >>> sl = process.sendline
+> ​        >>> sa = process.sendafter
+> ​        >>> sla = process.sendlineafter
+>
+> ​        >>> recv = process.recv
+> ​        >>> recvu = process.recvuntil
+> ​        >>> recvn = process.recvn
+> ​        >>> recvl = process.recvline
+>
+> ​        >>> ia = process.interactive
 
 ```python
 from pwn import *
