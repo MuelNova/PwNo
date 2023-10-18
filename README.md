@@ -54,7 +54,8 @@ ia()  # 无需设置！
 
 <details>
 <summary>使用 pip 安装</summary>
-欸，还没部署呢
+
+    pip install PwNo --upgrade
 </details>
 
 
@@ -125,6 +126,7 @@ from pwno import *
 
 p = process(['/path/to/your/elf'])
 # I hate the name 'p'
+p.close()
 while True:
     sh = process(['/path/to/your/elf'])
 
@@ -134,7 +136,7 @@ while True:
 
 #### abbr
 
-不喜欢 PwNo 设置的缩写？Make your owns!
+不喜欢 PwNo 设置的缩写？Make your own!
 
 PwNo 导出了方法 `abbr`，使用它，你可以轻松的设置你自己的缩写，或是设置全局的缩写
 
