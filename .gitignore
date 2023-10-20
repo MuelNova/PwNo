@@ -166,3 +166,9 @@ cython_debug/
 
 # OneDrive
 *-NovaNo1r-*
+
+# VSCode
+.vscode
+
+# TestBinary
+pwn

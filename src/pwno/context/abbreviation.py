@@ -1,9 +1,42 @@
 import inspect
 
-from typing import TypeVar, Callable, Any
-from pwn import pwnlib, process
+from typing import TypeVar, Callable, Any, Tuple
+from pwn import pwnlib, process, remote
 
 T = TypeVar('T', bound=Callable[..., Any])
+
+def get_instance(name: str = None, start: int = 1) -> Tuple[str, process|remote]:
+    """
+    拿取 process/remote 实例，如果没有传入 name 则会自动寻找当前上下文中最新的一个 process/remote 实例。
+    参数：
+        name(str)
+            需要拿取的 process/remote 实例的名字
+        force(bool)
+            如果为 True，则会强制寻找当前上下文中最新的一个 process/remote 实例，而不是传入的 name
+        start(int)
+            从第几层开始寻找，0 为当前栈，1 为上一栈帧，以此类推。
+    返回：
+        (name, instance)
+            name 为实例的名字，instance 为实例本身
+    """
+    ctx = inspect.currentframe()
+    for _ in range(start):
+        ctx = ctx.f_back
+        if ctx is None:
+            break
+    while ctx is not None:
+        for k, v in reversed(ctx.f_locals.items()):
+            if isinstance(v, (pwnlib.tubes.process.process, pwnlib.tubes.remote.remote)):
+                if name is not None:
+                    if k == name:
+                        return k, v
+                    else:
+                        continue
+                return k, v
+        ctx = ctx.f_back
+    raise ValueError('No instance found')
+
+
 def abbr(func: T) -> T:
     """
     提供一个函数的缩写，如果传入类则默认找到当前上下文中最新的一个实例(process/remote)。
@@ -29,29 +62,36 @@ def abbr(func: T) -> T:
     """
     f = func.__name__
     if inspect.ismethod(func):
-        for k, v in reversed(inspect.currentframe().f_back.f_locals.items()):
-            if v == func.__self__:
-                name = k
-                break
-    else:
-        name = ''
-
-    def get_instance(force=False):
-        nonlocal name
-        ctx = inspect.currentframe().f_back.f_back.f_locals
-        if name == '' or force:
-            for k, v in reversed(ctx.items()):
-                if isinstance(v, (pwnlib.tubes.process.process, pwnlib.tubes.remote.remote)):
+        ctx = inspect.currentframe()
+        flag = False
+        while ctx is not None and not flag:
+            ctx = ctx.f_back
+            for k, v in reversed(ctx.f_locals.items()):
+                if v == func.__self__:
                     name = k
+                    flag = True
                     break
-        return ctx[name]
+    else:
+        name = None
+    sh = None
     
     def inner(*args, **kwargs):
-        sh = get_instance()
-        if sh.poll() is not None:
-            sh = get_instance(True)
+        nonlocal sh
+        if sh is None or sh.poll() is not None:
+            # sh.poll() is not None means the process is closed
+            _, sh = get_instance(name, start=2)
+        # print(name, sh, sh.proc, sh.proc.pid)
         return getattr(sh, f)(*args, **kwargs)
     return inner
 
+send = abbr(process.send)
 sl = abbr(process.sendline)
+sa = abbr(process.sendafter)
+sla = abbr(process.sendlineafter)
+
 recv = abbr(process.recv)
+recvu = abbr(process.recvuntil)
+recvn = abbr(process.recvn)
+recvl = abbr(process.recvline)
+
+ia = abbr(process.interactive)
