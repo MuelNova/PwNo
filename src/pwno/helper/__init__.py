@@ -53,10 +53,10 @@ def dbg(gdb_script: str = None,
         force(bool)
             强制调试 gdb.debug() 的实例或是 remote 实例
     """
-    if (config.REMOTE or config.GDB) and not force:
+    if (config.REMOTE or config.GDB or config.NO_DEBUG) and not force:
         return
     if sh is None:
-        sh = get_instance()
+        _, sh = get_instance()
         if isinstance(sh, remote) and not force:
             return
     gdb.attach(sh, gdb_script)
