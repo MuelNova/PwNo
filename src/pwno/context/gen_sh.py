@@ -5,9 +5,9 @@ from .context import config
 def gen_sh(*a, **kw) -> process | remote:
     if config.REMOTE:
         return remote(config.HOST, config.PORT)
-    if config.GDB:
-        if not config.ATTACHMENT.startswith('.') or not config.ATTACHMENT.startswith('/'):
+    if not config.ATTACHMENT.startswith('.') or not config.ATTACHMENT.startswith('/'):
             config.ATTACHMENT = './' + config.ATTACHMENT
+    if config.GDB:
         return gdb.debug([config.ATTACHMENT, *config.RUNARGS.split(' ')], gdbscript=config.GDB_SCRIPT, *a, **kw)
     return process([config.ATTACHMENT, *config.RUNARGS.split(' ')], *a, **kw)
 
