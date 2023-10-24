@@ -35,7 +35,6 @@ _✨ Pwntools Extensions that Just Works! ✨_
 ### 一键缩写
 
 ```python
-from pwn import *
 from pwno import *
 
 p = process(['/path/to/your/elf'])
@@ -50,7 +49,6 @@ see [abbr](#abbr)
 
 ```python
 # 只需使用同一份代码！
-from pwn import *
 from pwno import *
 
 sh = gen_sh()
@@ -122,7 +120,6 @@ PwNo 为脚本实现了缩写功能以加速你的脚本编写，而你不需要
 > ​        >>> ia = process.interactive
 
 ```python
-from pwn import *
 from pwno import *
 
 p = process(['/path/to/your/elf'])
@@ -134,7 +131,6 @@ ia()  # equals to p.interactive()
 这对变量名没有任何要求
 
 ```python
-from pwn import *
 from pwno import *
 
 I_Hate_PWN = remote('weird.challenge.pwn', 11451)
@@ -146,7 +142,6 @@ ia()  # equals to I_Hate_PWN.interactive()
 同时也支持循环操作，甚至修改变量名！在原来的 process 不可用的情况下，PwNo 会重新找到最新创建的 process/remote
 
 ```python
-from pwn import *
 from pwno import *
 
 p = process(['/path/to/your/elf'])
@@ -166,7 +161,6 @@ while True:
 使用 `abbr`，你可以轻松的设置你自己的缩写，或是设置全局的缩写
 
 ```python
-from pwn import *
 from pwno import *
 
 p = process(['/path/to/your/elf'])
@@ -189,7 +183,6 @@ new_sl(b'p')  # equals to p.sendline(b'p')
 对于全局缩写，为了优化性能，脚本在命令使用一次后将会把此时最新的 `process` 与命令进行绑定，此后除非绑定 `process` 不可用，否则都会指向绑定 `process`。
 
 ``` python
-from pwn import *
 from pwno import *
 
 sh = process(['/path/to/your/elf'])
@@ -231,7 +224,6 @@ uu64(recv(6))
 在不指定前会使用最新的一个 `process` 实例
 
 ```python
-from pwn import *
 from pwno import *
 
 p = process('./pwn')
@@ -274,7 +266,6 @@ options:
 
 ```python
 # exp.py
-from pwn import *
 from pwno import *
 ```
 
@@ -285,7 +276,6 @@ from pwno import *
 尽管这不是必须的，我们更推荐你直接使用 `gen_sh` 生成 `process` 实例。你只需要专心 exp 的编写，剩下的事交给 PwNo 就好
 
 ```python
-from pwn import *
 from pwno import *
 
 # REMOTE = 0
