@@ -66,3 +66,4 @@ config = Config(**vars(args))
 
 elf = ELF(config.ATTACHMENT)
 libc = ELF(config.LIBC)
+context.log_level = 'debug' if not config.NO_DEBUG else 'info'
