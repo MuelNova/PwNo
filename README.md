@@ -241,7 +241,8 @@ PwNo 提供了开箱即用的命令行参数方便使用，你无需任何设置
 
 ```sh
 # python exp.py --help
-usage: exp.py [-h] [--libc [LIBC]] [--no-debug] [--remote REMOTE] [--host HOST] [--port PORT] [--gdb] [--gdb-script GDB_SCRIPT] [--args RUNARGS]
+usage: exp.py [-h] [--libc [LIBC]] [--debug DBG] [--no-debug] [--remote REMOTE] [--host HOST] [--port PORT] [--gdb]
+              [--gdb-script GDB_SCRIPT] [--args RUNARGS]
               [ATTACHMENT]
 
 Pwnable Commandline
@@ -252,6 +253,7 @@ positional arguments:
 options:
   -h, --help            show this help message and exit
   --libc [LIBC], -l [LIBC]
+  --debug DBG, -d DBG   Which dbg() to be executed, default is `all`, use comma to split. e.g. `-d 0,1,3`
   --no-debug, -D        Disable debug mode
   --remote REMOTE, -r REMOTE
                         Remote host:port
@@ -301,7 +303,6 @@ python exp.py -r easy.challenge.pwn:12345
 python exp.py -h easy.challenge.pwn -p 12345
 ```
 
-> ToDo: PwNo 将会添加更多 gen_sh 的参数以满足特殊的使用需求。
 
 #### elf、libc
 
