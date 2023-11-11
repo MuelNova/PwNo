@@ -69,7 +69,16 @@ def testCustomAbbr():
     sh.close()
     print(">>> CUSTOM ABBR TEST PASSED")
 
+def testAbbrRemote():
+    sh = remote('localhost', 19919)
+    sl(b'echo 1 > /dev/null')
+    p = remote('localhost', 19919)
+    sl(b'cat /flag')
+    ia()
+
 testFrame()
 testAbbr()
 testAbbrAfterClose()
 testCustomAbbr()
+
+testAbbrRemote()

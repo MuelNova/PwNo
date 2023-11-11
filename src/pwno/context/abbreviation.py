@@ -77,7 +77,9 @@ def abbr(func: T) -> T:
     
     def inner(*args, **kwargs):
         nonlocal sh
-        if sh is None or sh.poll() is not None:
+        if sh is None or \
+          (isinstance(sh, process) and sh.poll() is not None) or \
+          (isinstance(sh, remote) and (sh.closed['send'] == True or sh.closed['recv'] == True)):
             # sh.poll() is not None means the process is closed
             _, sh = get_instance(name, start=2)
         # print(name, sh, sh.proc, sh.proc.pid)
