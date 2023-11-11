@@ -1,6 +1,7 @@
 import subprocess
 from pathlib import Path
 from pwn import *
+from elftools.common.exceptions import ELFError
 from argparse import ArgumentParser
 from pydantic import BaseModel, root_validator, ValidationError, validator
 
@@ -16,6 +17,7 @@ class Config(BaseModel, extra='ignore'):
     REMOTE: bool = False
     GDB: bool = False  # gdb.debug(elf.path, gdbscript=gdbscript)
     GDB_SCRIPT: str = ''
+    DBG: list[int] = None
 
     @root_validator(pre=True)
     def ignore_None(cls, values):
@@ -35,7 +37,7 @@ class Config(BaseModel, extra='ignore'):
         return fin
 
     @validator('ATTACHMENT', pre=True, always=True)
-    def _(cls, value) -> str:
+    def _attachment(cls, value) -> str:
         if value is None:
             def is_elf(path: Path):
                 try:
@@ -49,10 +51,17 @@ class Config(BaseModel, extra='ignore'):
                     return file.name
             return '/bin/sh'  # fallback
         return value
+    
+    @validator('DBG', pre=True, always=True)
+    def _dbg(cls, value) -> list[int]:
+        if value is None:
+            return []
+        return [int(i) for i in value.split(',')]
 
 parser = ArgumentParser(description="Pwnable Commandline")
 parser.add_argument('ATTACHMENT', nargs='?')
 parser.add_argument('--libc', '-l', nargs='?', dest='LIBC')
+parser.add_argument('--debug', '-d', action='store', dest='DBG', help='Which dbg() to be executed, default is `all`, use comma to split. e.g. `-d 0,1,3`')
 parser.add_argument('--no-debug', '-D', action='store_true', dest='NO_DEBUG', help='Disable debug mode')
 parser.add_argument('--remote', '-r', action='store', dest='REMOTE', help='Remote host:port')
 parser.add_argument('--host', '-H', action='store', dest='HOST', help='Remote host, if remote is set, this option will be ignored')
@@ -63,7 +72,11 @@ parser.add_argument('--args', '-a', action='store', dest='RUNARGS', help='Argume
 args = parser.parse_args()
 
 config = Config(**vars(args))
-
-elf = ELF(config.ATTACHMENT)
+print(config)
+try:
+    elf = ELF(config.ATTACHMENT)
+except ELFError:
+    elf = None
+    log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `elf` is not set")
 libc = ELF(config.LIBC)
 context.log_level = 'debug' if not config.NO_DEBUG else 'info'
