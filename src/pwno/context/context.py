@@ -72,11 +72,13 @@ parser.add_argument('--args', '-a', action='store', dest='RUNARGS', help='Argume
 args = parser.parse_args()
 
 config = Config(**vars(args))
-print(config)
 try:
     elf = ELF(config.ATTACHMENT)
+    context.arch = elf.arch
 except ELFError:
     elf = None
     log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `elf` is not set")
 libc = ELF(config.LIBC)
-context.log_level = 'debug' if not config.NO_DEBUG else 'info'
+
+context.log_level = 'debug'
+context.os = 'linux'
