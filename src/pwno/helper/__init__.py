@@ -2,6 +2,8 @@ from typing import Literal, Any
 from pwn import *
 from ..context import config, get_instance
 
+DBG_CNT = -1
+
 def uu64(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
     """
     Unpacks 64-bit integer from padded data.
@@ -59,6 +61,11 @@ def dbg(gdb_script: str = None,
         _, sh = get_instance()
         if isinstance(sh, remote) and not force:
             return
+        
+    global DBG_CNT
+    DBG_CNT += 1
+    if config.DBG and DBG_CNT not in config.DBG:
+        return
     gdb.attach(sh, gdb_script)
     if s != 0 and not config.GDB:
         pause(s)
