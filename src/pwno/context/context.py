@@ -57,6 +57,14 @@ class Config(BaseModel, extra='ignore'):
         if value is None:
             return []
         return [int(i) for i in value.split(',')]
+    
+    @validator('GDB_SCRIPT', pre=True, always=True)
+    def _gdb_script(cls, value) -> str:
+        if value is None:
+            return ''
+        if Path(value).is_file():
+            return Path(value).read_text()
+        return value.replace('\\n', '\n')
 
 parser = ArgumentParser(description="Pwnable Commandline")
 parser.add_argument('ATTACHMENT', nargs='?')
