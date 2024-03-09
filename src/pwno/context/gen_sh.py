@@ -34,7 +34,7 @@ def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | r
 
     if config.REMOTE:
         return remote(config.HOST, config.PORT)
-    if not config.ATTACHMENT.startswith('.') or not config.ATTACHMENT.startswith('/'):
+    if not config.ATTACHMENT.startswith('.') and not config.ATTACHMENT.startswith('/'):
             config.ATTACHMENT = './' + config.ATTACHMENT
     if config.GDB:
         return gdb.debug([config.ATTACHMENT, *config.RUNARGS.split(' ')], gdbscript=config.GDB_SCRIPT, *a, **kw)

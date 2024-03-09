@@ -48,7 +48,7 @@ class Config(BaseModel, extra='ignore'):
             for file in Path.cwd().iterdir():
                 if file.is_file() and is_elf(file):
                     info("No Attachment set, using \"%s\"...", file.absolute())
-                    return file.name
+                    return str(file.absolute())
             return '/bin/sh'  # fallback
         return value
     
