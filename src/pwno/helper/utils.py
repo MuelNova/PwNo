@@ -67,5 +67,11 @@ def dbg(gdb_script: str = None,
     if config.DBG and DBG_CNT not in config.DBG:
         return
     gdb.attach(sh, gdb_script)
-    if s != 0 and not config.GDB:
-        pause(s)
+    if not config.GDB:
+        if s == -1:
+            return
+        if s == 0:
+            pause()
+        else:
+            pause(s)
+
