@@ -1,6 +1,6 @@
 [project]
 name = "PwNo"
-version = "0.1.4"
+version = "0.1.4post1"
 description = "Pwntools Extension that Just Works"
 authors = [
     {name = "MuelNova", email = "n@ova.moe"},
