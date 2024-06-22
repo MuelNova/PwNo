@@ -1,25 +1,66 @@
 import subprocess
 from pathlib import Path
+from typing_extensions import Annotated
 from pwn import *
 from elftools.common.exceptions import ELFError
 from argparse import ArgumentParser
-from pydantic import BaseModel, root_validator, ValidationError, validator
+from pydantic import BaseModel, model_validator, Field, field_validator, ValidationError
 
 # ------- Default Settings -------
 class Config(BaseModel, extra='ignore'):
-    ATTACHMENT: str = None
+    ATTACHMENT: Annotated[str, Field(validate_default=True)] = None
     RUNARGS: str = ''
-    LIBC: str = '/lib/x86_64-linux-gnu/libc.so.6'
+    LIBC: Annotated[str, Field(validate_default=True)] = None
     HOST: str = ''
     PORT: int = 0
 
     NO_DEBUG: bool = False
     REMOTE: bool = False
     GDB: bool = False  # gdb.debug(elf.path, gdbscript=gdbscript)
-    GDB_SCRIPT: str = ''
-    DBG: list[int] = None
+    GDB_SCRIPT: Annotated[str, Field(validate_default=True)] = None
+    DBG: Annotated[list[int], Field(validate_default=True)] = None
 
-    @root_validator(pre=True)
+    @field_validator('ATTACHMENT', mode='before')
+    def _attachment(cls, value) -> str:
+        if value is None:
+            def is_elf(path: Path):
+                try:
+                    result = subprocess.run(['file', str(path)], capture_output=True, text=True)
+                    return "ELF" in result.stdout and "executable" in result.stdout
+                except:
+                    return False
+            for file in Path.cwd().iterdir():
+                if file.is_file() and is_elf(file):
+                    info("No Attachment set, using \"%s\"...", file.absolute())
+                    return str(file.absolute())
+            info("No Attachment set, using \"/bin/sh\"...")
+            return '/bin/sh'  # fallback
+        return value
+    
+    @field_validator('DBG', mode='before')
+    def _dbg(cls, value) -> list[int]:
+        if value is None:
+            return []
+        return [int(i) for i in value.split(',')]
+    
+    @field_validator('GDB_SCRIPT', mode='before')
+    def _gdb_script(cls, value) -> str:
+        if value is None:
+            return ''
+        if Path(value).is_file():
+            return Path(value).read_text()
+        return value.replace('\\n', '\n')
+    
+    @field_validator('LIBC', mode='before')
+    def _libc(cls, value) -> str:
+        if value is None:
+            libc_base = subprocess.run(['ldd', '/bin/sh'], capture_output=True, text=True).stdout
+            libc_path = libc_base.split('libc.so.6 => ')[1].split('(')[0].strip()
+            info("No Libc set, using \"%s\"...", libc_path)
+            return libc_path
+        return value
+    
+    @model_validator(mode='before')
     def ignore_None(cls, values):
         fin = {k: v for k, v in values.items() if v is not None}
         keys = list(fin.keys())
@@ -35,36 +76,7 @@ class Config(BaseModel, extra='ignore'):
             fin['PORT'] = int(rmt[1])
             fin['REMOTE'] = True
         return fin
-
-    @validator('ATTACHMENT', pre=True, always=True)
-    def _attachment(cls, value) -> str:
-        if value is None:
-            def is_elf(path: Path):
-                try:
-                    result = subprocess.run(['file', str(path)], capture_output=True, text=True)
-                    return "ELF" in result.stdout and "executable" in result.stdout
-                except:
-                    return False
-            for file in Path.cwd().iterdir():
-                if file.is_file() and is_elf(file):
-                    info("No Attachment set, using \"%s\"...", file.absolute())
-                    return str(file.absolute())
-            return '/bin/sh'  # fallback
-        return value
-    
-    @validator('DBG', pre=True, always=True)
-    def _dbg(cls, value) -> list[int]:
-        if value is None:
-            return []
-        return [int(i) for i in value.split(',')]
-    
-    @validator('GDB_SCRIPT', pre=True, always=True)
-    def _gdb_script(cls, value) -> str:
-        if value is None:
-            return ''
-        if Path(value).is_file():
-            return Path(value).read_text()
-        return value.replace('\\n', '\n')
+            
 
 parser = ArgumentParser(description="Pwnable Commandline")
 parser.add_argument('ATTACHMENT', nargs='?')
@@ -81,12 +93,16 @@ args = parser.parse_args()
 
 config = Config(**vars(args))
 try:
-    elf = ELF(config.ATTACHMENT)
-    context.arch = elf.arch
+    Elf = ELF(config.ATTACHMENT)
+    context.arch = Elf.arch
 except ELFError:
-    elf = None
-    log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `elf` is not set")
-libc = ELF(config.LIBC)
+    Elf = None
+    log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
+try:
+    libc = ELF(config.LIBC)
+except ELFError:
+    libc = None
+    log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
 
 context.log_level = 'debug'
 context.os = 'linux'
