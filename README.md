@@ -1,9 +1,8 @@
 <div align="center">
 
-
 # PwNo
 
-_✨ Pwntools Extensions that Just Works! ✨_	
+_✨ Pwntools Extensions that Just Works! ✨_
 
 <p>
 <a href="./LICENSE">
@@ -60,7 +59,7 @@ ia()
 
 ```sh
 python exp.py  # 默认为 ./pwn
-python exp.py my_challenge  # 生成 ./my_challenge 
+python exp.py my_challenge  # 生成 ./my_challenge
 python exp.py -r my.challenge.pwn:11451 -l libc.so.6 # 远程调试，此时自动禁用 debug 模式
 ```
 
@@ -86,11 +85,7 @@ send(bytes(cat))
 ia()
 ```
 
-
-
 ### And More ...
-
-
 
 ## Installation
 
@@ -98,8 +93,8 @@ ia()
 <summary>使用 pip 安装</summary>
 
     pip install PwNo --upgrade
-</details>
 
+</details>
 
 <details>
 <summary>本地安装</summary>
@@ -107,6 +102,7 @@ ia()
     git clone https://github.com/MuelNova/PwNo
     cd PwNo
     pip install -e .
+
 </details>
 
 ## Usage
@@ -116,8 +112,6 @@ ia()
 ```python
 from pwno import *
 ```
-
-
 
 ## Docs
 
@@ -129,17 +123,17 @@ PwNo 为脚本实现了缩写功能以加速你的脚本编写，而你不需要
 
 > 默认的导出：
 >
-> ​        >>> send  = process.send
-> ​        >>> sl = process.sendline
-> ​        >>> sa = process.sendafter
-> ​        >>> sla = process.sendlineafter
+> ​ >>> send = process.send
+> ​ >>> sl = process.sendline
+> ​ >>> sa = process.sendafter
+> ​ >>> sla = process.sendlineafter
 >
-> ​        >>> recv = process.recv
-> ​        >>> recvu = process.recvuntil
-> ​        >>> recvn = process.recvn
-> ​        >>> recvl = process.recvline
+> ​ >>> recv = process.recv
+> ​ >>> recvu = process.recvuntil
+> ​ >>> recvn = process.recvn
+> ​ >>> recvl = process.recvline
 >
-> ​        >>> ia = process.interactive
+> ​ >>> ia = process.interactive
 
 ```python
 from pwno import *
@@ -176,8 +170,6 @@ while True:
     sh.close()
 ```
 
-
-
 不喜欢 PwNo 设置的缩写？Make your own!
 
 使用 `abbr`，你可以轻松的设置你自己的缩写，或是设置全局的缩写
@@ -204,7 +196,7 @@ new_sl(b'p')  # equals to p.sendline(b'p')
 
 对于全局缩写，为了优化性能，脚本在命令使用一次后将会把此时最新的 `process` 与命令进行绑定，此后除非绑定 `process` 不可用，否则都会指向绑定 `process`。
 
-``` python
+```python
 from pwno import *
 
 sh = process(['/path/to/your/elf'])
@@ -215,8 +207,6 @@ send(b'I send, I bind p')  # call `p.send`
 sl(b'AM I still sh?')  # call `sh.sendline`
 ```
 
-
-
 ### typing
 
 #### pack
@@ -224,8 +214,6 @@ sl(b'AM I still sh?')  # call `sh.sendline`
 PwNo 为常用的包装与解包函数添加了类型注解，现在你终于不需要对着标红的 `p64` \ `u32` 眉头紧皱了！
 
 ![TypeHint](docs/img/1.png)
-
-
 
 ### helper
 
@@ -255,7 +243,33 @@ dbg('b *$rebase(0x1145)', s=5)
 dbg('set follow-fork-mode parent', sh=sh)
 ```
 
+#### log
 
+PwNo 使用更多的黑魔法让你的调试变得更快更好
+
+```python
+libc_base = u64(p.recv(6).ljust(8, b'\x00'))
+success(f"libc_base: {hex(libc_base)}")
+
+# 为什么不试试
+libc.addr = uu64(recv(6))
+success(libc.addr)
+
+"
+[+] libc.address: 0xdeadbeef(3735928559)
+"
+
+payload = asm(shellcraft.sh())
+info(payload)
+
+"""
+[+] payload
+    00000000  6a 68 48 b8  2f 62 69 6e  2f 2f 2f 73  50 48 89 e7  │jhH·│/bin│///s│PH··│
+    00000010  68 72 69 01  01 81 34 24  01 01 01 01  31 f6 56 6a  │hri·│··4$│····│1·Vj│
+    00000020  08 5e 48 01  e6 56 48 89  e6 31 d2 6a  3b 58 0f 05  │·^H·│·VH·│·1·j│;X··│
+    00000030
+"""
+```
 
 ### IO_FILE / IO_FILE_plus
 
@@ -274,8 +288,6 @@ io._IO_write_ptr = 0xdeadbeef
 io._IO_write_base = p64(0xc0decafe)
 send(bytes(io))
 ```
-
-
 
 ### House
 
@@ -310,8 +322,6 @@ cat.fake_io = heap
 
 send(cat)
 ```
-
-
 
 ### CommandArgs
 
@@ -349,8 +359,6 @@ options:
 from pwno import *
 ```
 
-
-
 #### gen_sh
 
 尽管这不是必须的，我们更推荐你直接使用 `gen_sh` 生成 `process` 实例。你只需要专心 exp 的编写，剩下的事交给 PwNo 就好
@@ -381,25 +389,22 @@ python exp.py -r easy.challenge.pwn:12345
 python exp.py -h easy.challenge.pwn -p 12345
 ```
 
+#### Elf、libc
 
-#### elf、libc
-
-PwNo 会导出两个对象，`elf` 和 `libc`，而它们的值即为命令行参数所传入的值。例如
+PwNo 会导出两个对象，`Elf` 和 `libc`，而它们的值即为命令行参数所传入的值。例如
 
 ```sh
 python exp.py -l libc.so.6 heapMaster
 
-# elf: ELF('./heapMaster')
+# Elf: ELF('./heapMaster')
 # libc: ELF('./libc.so.6')
 ```
 
-默认情况下，`elf` 将会指向当前工作目录 (CWD) 中的第一个 `ELF` 文件，而 `libc` 将会指向 `/lib/x86_64-linux-gnu/libc.so.6`，因为这会更加便于调试。
+默认情况下，`Elf` 将会指向当前工作目录 (CWD) 中的第一个 `ELF` 文件，而 `libc` 将会指向 `/bin/sh` 使用的 libc，因为这会更加便于调试。
 
 #### dbg 的行为
 
 [dbg](#dbg) 的行为将会收到命令行参数的影响，你如果设置了 `host, port / remote`，或是设置了 `--gdb` 在 `gdb.debug` 模式下运行，又或是指定了 `-D` 禁用了 debug 模式，dbg 将不会使用 gdb 附加或是等待。
-
-
 
 ## ToDos
 
