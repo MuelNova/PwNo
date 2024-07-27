@@ -4,7 +4,13 @@ from ..context import config, get_instance
 
 DBG_CNT = -1
 
-def uu64(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def uu64(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 64-bit integer from padded data.
 
@@ -19,10 +25,17 @@ def uu64(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = 
     Returns:
         The unpacked integer.
     """
-    return pwnlib.util.packing.u64(data.ljust(8, b'\x00'), endianness=endianness, sign=sign, **kwargs)
+    return pwnlib.util.packing.u64(
+        data.ljust(8, b"\x00"), endianness=endianness, sign=sign, **kwargs
+    )
 
 
-def uu32(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+def uu32(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 32-bit integer from padded data.
 
@@ -37,12 +50,14 @@ def uu32(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = 
     Returns:
         The unpacked integer.
     """
-    return pwnlib.util.packing.u32(data.ljust(4, b'\x00'), endianness=endianness, sign=sign, **kwargs)
+    return pwnlib.util.packing.u32(
+        data.ljust(4, b"\x00"), endianness=endianness, sign=sign, **kwargs
+    )
 
 
-def dbg(gdb_script: str = None,
-        sh: process | remote = None,
-        s: int = 4, force: bool = False):
+def dbg(
+    gdb_script: str = None, sh: process | remote = None, s: int = 4, force: bool = False
+):
     """
     附加 GDB，默认选择最新的 process
     参数：
@@ -61,7 +76,7 @@ def dbg(gdb_script: str = None,
         _, sh = get_instance()
         if isinstance(sh, remote) and not force:
             return
-        
+
     global DBG_CNT
     DBG_CNT += 1
     if config.DBG and DBG_CNT not in config.DBG:
@@ -74,4 +89,3 @@ def dbg(gdb_script: str = None,
             pause()
         else:
             pause(s)
-

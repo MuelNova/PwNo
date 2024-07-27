@@ -22,3 +22,10 @@ build-backend = "pdm.backend"
 dev = [
     "ruff>=0.5.5",
 ]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "C90"]
+ignore = ["F405", "F403", "F841"]

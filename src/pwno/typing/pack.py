@@ -1,7 +1,13 @@
 from typing import Literal, Any
 from pwn import pwnlib
 
-def p64(number: int, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def p64(
+    number: int,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Packs integer into wordsize of 64.
 
@@ -18,7 +24,13 @@ def p64(number: int, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.p64(number, endianness=endianness, sign=sign, **kwargs)
 
-def p32(number: int, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def p32(
+    number: int,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Packs integer into wordsize of 32.
 
@@ -35,7 +47,13 @@ def p32(number: int, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.p32(number, endianness=endianness, sign=sign, **kwargs)
 
-def p16(number: int, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def p16(
+    number: int,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Packs integer into wordsize of 16.
 
@@ -52,7 +70,13 @@ def p16(number: int, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.p16(number, endianness=endianness, sign=sign, **kwargs)
 
-def p8(number: int, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def p8(
+    number: int,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Packs integer into wordsize of 8.
 
@@ -69,7 +93,13 @@ def p8(number: int, endianness: Literal['little', 'big'] = None, sign: bool = No
     """
     return pwnlib.util.packing.p8(number, endianness=endianness, sign=sign, **kwargs)
 
-def u64(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def u64(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 64-bit integer from data.
 
@@ -86,7 +116,13 @@ def u64(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.u64(data, endianness=endianness, sign=sign, **kwargs)
 
-def u32(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def u32(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 32-bit integer from data.
 
@@ -103,7 +139,13 @@ def u32(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.u32(data, endianness=endianness, sign=sign, **kwargs)
 
-def u16(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def u16(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 16-bit integer from data.
 
@@ -120,7 +162,13 @@ def u16(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = N
     """
     return pwnlib.util.packing.u16(data, endianness=endianness, sign=sign, **kwargs)
 
-def u8(data: bytes, endianness: Literal['little', 'big'] = None, sign: bool = None, **kwargs: Any):
+
+def u8(
+    data: bytes,
+    endianness: Literal["little", "big"] = None,
+    sign: bool = None,
+    **kwargs: Any,
+):
     """
     Unpacks 8-bit integer from data.
 

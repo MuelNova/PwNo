@@ -1,2 +1,2 @@
 from .struct import *
-from .cat import HouseOfCat
+from .cat import HouseOfCat as HouseOfCat
