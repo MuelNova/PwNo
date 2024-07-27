@@ -56,7 +56,10 @@ def uu32(
 
 
 def dbg(
-    gdb_script: str = None, sh: process | remote = None, s: int = 4, force: bool = False
+    gdb_script: str = None,
+    sh: process | remote | None = None,
+    s: int = 4,
+    force: bool = False,
 ):
     """
     附加 GDB，默认选择最新的 process
