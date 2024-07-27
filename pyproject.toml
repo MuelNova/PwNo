@@ -8,6 +8,7 @@ authors = [
 dependencies = [
     "pwntools>=4.12.0",
     "pydantic>=2.8.2",
+    "setuptools>=71.1.0",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
