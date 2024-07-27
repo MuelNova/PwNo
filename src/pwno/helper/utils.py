@@ -1,5 +1,16 @@
-from typing import Literal, Any
-from pwn import *
+from typing import Callable, Literal, Any
+from sorcery import spell, args_with_source
+from sorcery.core import FrameInfo
+from functools import partial
+from pwn import remote, process, gdb, pause, pwnlib, hexdump
+from pwn import (
+    success as _success,
+    info as _info,
+    debug as _debug,
+    warning as _warning,
+    warn as _warn,
+    error as _error,
+)
 from ..context import config, get_instance
 
 DBG_CNT = -1
@@ -92,3 +103,27 @@ def dbg(
             pause()
         else:
             pause(s)
+
+
+def __pplog(
+    frame_info: FrameInfo,
+    func: Callable[[Any], None],
+    msg: Any,
+    *args: Any,
+    **kwargs: Any,
+):
+    for source, arg in args_with_source.at(frame_info)(msg, *args, kwargs):
+        if isinstance(arg, int):
+            func(f"{source}: {arg:#x}({arg})")
+        elif isinstance(arg, bytes):
+            func(f"{source}\n{hexdump(arg)}")
+        else:
+            func(f"{source}: {arg}")
+
+
+success: Callable[[Any], None] = partial(spell(__pplog), _success)
+info: Callable[[Any], None] = partial(spell(__pplog), _info)
+debug: Callable[[Any], None] = partial(spell(__pplog), _debug)
+warning: Callable[[Any], None] = partial(spell(__pplog), _warning)
+warn: Callable[[Any], None] = partial(spell(__pplog), _warn)
+error: Callable[[Any], None] = partial(spell(__pplog), _error)
