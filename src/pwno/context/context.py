@@ -4,7 +4,14 @@ from typing_extensions import Annotated
 from pwn import *
 from elftools.common.exceptions import ELFError
 from argparse import ArgumentParser
-from pydantic import BaseModel, model_validator, Field, field_validator, ValidationError
+from pydantic import (
+    BaseModel,
+    model_validator,
+    Field,
+    field_validator,
+    ValidationError,
+    ValidationInfo,
+)
 
 
 # ------- Default Settings -------
@@ -57,10 +64,13 @@ class Config(BaseModel, extra="ignore"):
         return value.replace("\\n", "\n")
 
     @field_validator("LIBC", mode="before")
-    def _libc(cls, value) -> str:
+    def _libc(cls, value: str | None, info_: ValidationInfo) -> str:
+        print(info_)
         if value is None:
             libc_base = subprocess.run(
-                ["ldd", "/bin/sh"], capture_output=True, text=True
+                ["ldd", info_.data.get("ATTACHMENT", "/bin/sh")],
+                capture_output=True,
+                text=True,
             ).stdout
             libc_path = libc_base.split("libc.so.6 => ")[1].split("(")[0].strip()
             info('No Libc set, using "%s"...', libc_path)
