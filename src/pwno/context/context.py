@@ -1,17 +1,18 @@
 import subprocess
-from pathlib import Path
-from typing_extensions import Annotated
-from pwn import *
-from elftools.common.exceptions import ELFError
 from argparse import ArgumentParser
+from pathlib import Path
+
+from elftools.common.exceptions import ELFError
+from pwn import *
 from pydantic import (
     BaseModel,
-    model_validator,
     Field,
-    field_validator,
     ValidationError,
     ValidationInfo,
+    field_validator,
+    model_validator,
 )
+from typing_extensions import Annotated
 
 
 # ------- Default Settings -------

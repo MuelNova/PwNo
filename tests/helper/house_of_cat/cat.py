@@ -1,6 +1,5 @@
-from pwno.helper.IO import HouseOfCat
 from pwno import *
-
+from pwno.helper.IO import HouseOfCat
 
 sh = gen_sh()
 sh.recvuntil(b"p: ")

@@ -1,7 +1,7 @@
 import inspect
+from typing import Any, Callable, Tuple, TypeVar
 
-from typing import TypeVar, Callable, Any, Tuple
-from pwn import pwnlib, process, remote
+from pwn import process, pwnlib, remote
 
 T = TypeVar("T", bound=Callable[..., Any])
 

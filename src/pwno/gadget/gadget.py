@@ -1,13 +1,12 @@
 import pickle
+from itertools import chain
+from pathlib import Path
 
 from pwn import ELF
-from pathlib import Path
-from ropper import RopperService, Gadget
-from itertools import chain
+from ropper import Gadget, RopperService
 
-
-from ..typing import ELFType
 from ..settings import settings
+from ..typing import ELFType
 
 
 def load_gadgets(file: ELFType, force=None, **kwargs) -> RopperService:

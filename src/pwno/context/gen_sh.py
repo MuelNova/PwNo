@@ -2,8 +2,8 @@ import os
 
 from pwn import *
 
-from .context import get_config
 from ..helper.utils import DBG_CNT
+from .context import get_config
 
 
 def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | remote:
@@ -53,7 +53,7 @@ def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | r
     return process([config.ATTACHMENT, *config.RUNARGS.split(" ")], *a, **kw)
 
 
-def get_dbg_args() -> str:
+def get_dbg_args() -> str:  # noqa: C901
     import inspect
 
     config = get_config()

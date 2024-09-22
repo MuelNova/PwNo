@@ -1,5 +1,6 @@
-from pwn import ELF
 from argparse import ArgumentParser
+
+from pwn import ELF
 
 from ..gadget import pprint_gadgets
 

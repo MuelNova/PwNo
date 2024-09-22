@@ -1,2 +1,2 @@
-from .utils import *
 from .IO import *
+from .utils import *

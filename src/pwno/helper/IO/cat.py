@@ -1,7 +1,7 @@
 from typing import Any
 
-from ...typing import p64
 from ...context import libc
+from ...typing import p64
 from .struct import IO_FILE_plus
 
 
