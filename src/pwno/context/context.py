@@ -67,12 +67,22 @@ class Config(BaseModel, extra="ignore"):
     def _libc(cls, value: str | None, info_: ValidationInfo) -> str:
         print(info_)
         if value is None:
-            libc_base = subprocess.run(
+            output_raw = subprocess.run(
                 ["ldd", info_.data.get("ATTACHMENT", "/bin/sh")],
                 capture_output=True,
                 text=True,
-            ).stdout
-            libc_path = libc_base.split("libc.so.6 => ")[1].split("(")[0].strip()
+            ).stdout.split("\n")
+            output = filter(lambda x: "libc" in x, output_raw)
+            libc_path = None
+            for line in output:
+                libc_path = next(
+                    filter(
+                        lambda x: Path(x).is_file(), line.strip("\t").strip().split(" ")
+                    ),
+                    None,
+                )
+                if libc_path:
+                    break
             info('No Libc set, using "%s"...', libc_path)
             return libc_path
         return value
