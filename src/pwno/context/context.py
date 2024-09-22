@@ -43,9 +43,7 @@ class Config(BaseModel, extra="ignore"):
 
             for file in Path.cwd().iterdir():
                 if file.is_file() and is_elf(file):
-                    info('No Attachment set, using "%s"...', file.absolute())
                     return str(file.absolute())
-            info('No Attachment set, using "/bin/sh"...')
             return "/bin/sh"  # fallback
         return value
 
@@ -65,7 +63,6 @@ class Config(BaseModel, extra="ignore"):
 
     @field_validator("LIBC", mode="before")
     def _libc(cls, value: str | None, info_: ValidationInfo) -> str:
-        print(info_)
         if value is None:
             output_raw = subprocess.run(
                 ["ldd", info_.data.get("ATTACHMENT", "/bin/sh")],
@@ -83,7 +80,6 @@ class Config(BaseModel, extra="ignore"):
                 )
                 if libc_path:
                     break
-            info('No Libc set, using "%s"...', libc_path)
             return libc_path
         return value
 
@@ -104,65 +100,96 @@ class Config(BaseModel, extra="ignore"):
         return fin
 
 
-parser = ArgumentParser(description="Pwnable Commandline")
-parser.add_argument("ATTACHMENT", nargs="?")
-parser.add_argument("--libc", "-l", nargs="?", dest="LIBC")
-parser.add_argument(
-    "--debug",
-    "-d",
-    action="store",
-    dest="DBG",
-    help=(
-        "Which dbg() to be executed, default is `all`"
-        "use comma to split. e.g. `-d 0,1,3`"
-    ),
-)
-parser.add_argument(
-    "--no-debug", "-D", action="store_true", dest="NO_DEBUG", help="Disable debug mode"
-)
-parser.add_argument(
-    "--remote", "-r", action="store", dest="REMOTE", help="Remote host:port"
-)
-parser.add_argument(
-    "--host",
-    "-H",
-    action="store",
-    dest="HOST",
-    help="Remote host, if remote is set, this option will be ignored",
-)
-parser.add_argument(
-    "--port",
-    "-p",
-    action="store",
-    dest="PORT",
-    help="Remote port, if remote is set, this option will be ignored",
-)
-parser.add_argument(
-    "--gdb", "-g", action="store_true", dest="GDB", help="Run binary using gdb.debug"
-)
-parser.add_argument(
-    "--gdb-script", "-G", action="store", dest="GDB_SCRIPT", help="GDB script to run"
-)
-parser.add_argument(
-    "--args", "-a", action="store", dest="RUNARGS", help="Arguments to run binary"
-)
-parser.add_argument(
-    "--checksec", "-c", action="store_true", help="Check security of the binary"
-)
-args = parser.parse_args()
+def default_main():
+    parser = ArgumentParser(description="Pwnable Commandline")
 
-config = Config(**vars(args))
-try:
-    Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
-    context.arch = Elf.arch
-except ELFError:
-    Elf = None
-    log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
-try:
-    libc = ELF(config.LIBC, checksec=args.checksec)
-except ELFError:
-    libc = None
-    log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
+    parser.add_argument("ATTACHMENT", nargs="?")
+    parser.add_argument("--libc", "-l", nargs="?", dest="LIBC")
+    parser.add_argument(
+        "--debug",
+        "-d",
+        action="store",
+        dest="DBG",
+        help=(
+            "Which dbg() to be executed, default is `all`"
+            "use comma to split. e.g. `-d 0,1,3`"
+        ),
+    )
+    parser.add_argument(
+        "--no-debug",
+        "-D",
+        action="store_true",
+        dest="NO_DEBUG",
+        help="Disable debug mode",
+    )
+    parser.add_argument(
+        "--remote", "-r", action="store", dest="REMOTE", help="Remote host:port"
+    )
+    parser.add_argument(
+        "--host",
+        "-H",
+        action="store",
+        dest="HOST",
+        help="Remote host, if remote is set, this option will be ignored",
+    )
+    parser.add_argument(
+        "--port",
+        "-p",
+        action="store",
+        dest="PORT",
+        help="Remote port, if remote is set, this option will be ignored",
+    )
+    parser.add_argument(
+        "--gdb",
+        "-g",
+        action="store_true",
+        dest="GDB",
+        help="Run binary using gdb.debug",
+    )
+    parser.add_argument(
+        "--gdb-script",
+        "-G",
+        action="store",
+        dest="GDB_SCRIPT",
+        help="GDB script to run",
+    )
+    parser.add_argument(
+        "--args", "-a", action="store", dest="RUNARGS", help="Arguments to run binary"
+    )
+    parser.add_argument(
+        "--checksec", "-c", action="store_true", help="Check security of the binary"
+    )
+
+    args = parser.parse_args()
+
+    global config, Elf, libc
+    config = Config(**vars(args))
+
+    if not args.ATTACHMENT:
+        info('No Attachment set, using "%s"...', config.ATTACHMENT)
+    if not args.LIBC:
+        info('No Libc set, using "%s"...', config.LIBC)
+
+    try:
+        Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
+        context.arch = Elf.arch
+    except ELFError:
+        Elf = None
+        log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
+    try:
+        libc = ELF(config.LIBC, checksec=args.checksec)
+    except ELFError:
+        libc = None
+        log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
+
+
+def get_config() -> Config:
+    return config if config else Config()
+
+
+config: Config = None
+Elf: ELF = None
+libc: ELF = None
 
 context.log_level = "debug"
 context.os = "linux"

@@ -1,6 +1,6 @@
 [project]
 name = "PwNo"
-version = "0.1.6a0"
+version = "0.1.6a1"
 description = "Pwntools Extension that Just Works"
 authors = [
     {name = "MuelNova", email = "n@ova.moe"},
@@ -10,10 +10,14 @@ dependencies = [
     "pydantic>=2.8.2",
     "setuptools>=71.1.0",
     "sorcery>=0.2.2",
+    "ropper>=1.13.8",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
+
+[project.scripts]
+pwno = "pwno.cli:main"
 
 [build-system]
 requires = ["pdm-backend"]

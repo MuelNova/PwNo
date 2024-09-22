@@ -2,7 +2,7 @@ import os
 
 from pwn import *
 
-from .context import config
+from .context import get_config
 from ..helper.utils import DBG_CNT
 
 
@@ -15,6 +15,7 @@ def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | r
     如果传入的参数有两个，则会将第一个参数作为 config.HOST，第二个参数作为 config.PORT。
 
     """
+    config = get_config()
     if not config.REMOTE and not config.GDB and not config.ATTACHMENT:
         if len(a) == 1 or (f_or_h is not None and port is None):
             s = f_or_h or a[0]
@@ -54,6 +55,8 @@ def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | r
 
 def get_dbg_args() -> str:
     import inspect
+
+    config = get_config()
 
     frame = inspect.currentframe()
     while frame and frame.f_locals.get("__name__", None) != "__main__":

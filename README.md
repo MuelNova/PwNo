@@ -85,6 +85,18 @@ send(bytes(cat))
 ia()
 ```
 
+### 一键获取 gadget
+
+```sh
+$ pwno libc-2.23.so
+pop_rax_ret = libc.address + 0x3a738  # pop rax; ret;
+pop_rdi_ret = libc.address + 0x21112  # pop rdi; ret;
+pop_rdx_ret = libc.address + 0x1b92  # pop rdx; ret;
+pop_rsi_ret = libc.address + 0x202f8  # pop rsi; ret;
+syscall_ret = libc.address + 0xbc3f5  # syscall; ret;
+binsh = libc.address + 0x18ce57  # /bin/sh
+```
+
 ### And More ...
 
 ## Installation
@@ -323,6 +335,54 @@ cat.fake_io = heap
 send(cat)
 ```
 
+### Gadget
+
+PwNo 提供了 Ropper 的包装，使你能够更迅速地查找 gadgets
+
+### load_gadgets
+
+```python
+def load_gadgets(file: ELFType, force=None, **kwargs) -> RopperService:
+    """
+    查找 file 的 gadgets，如果 file 是 DYN 类型的 ELF，则会缓存 gadgets
+
+    Args:
+        file (ELFType): 要查找 gadgets 的 ELF 文件
+        force (bool, optional): 是否不使用缓存查找 gadgets. Defaults to None.
+
+    Returns:
+        RopperService: RopperService 实例
+    """
+```
+
+### pprint_gadgets
+
+```python
+def pprint_gadgets_default(
+    file: ELFType,
+    force: bool = False,
+    prefix: str = "libc.address",
+    regs: list[str] = [],
+    insts: list[str] = [],
+    strs: list[str] = [],
+    **kwargs,
+) -> None:
+    """
+    打印 file 的 gadgets, 以及 strings。返回可在 exp 中使用的常量
+
+    Args:
+        file (ELFType): 要查找 gadgets 的 ELF 文件
+        force (bool, optional): 是否不使用缓存查找 gadgets. Defaults to False.
+        prefix (str, optional): 变量的前缀. Defaults to "libc.address".
+        regs (list[str], optional): 寄存器列表. Defaults to [].
+        insts (list[str], optional): 指令列表. Defaults to [].
+        strs (list[str], optional): 字符串列表. Defaults to [].
+
+    Returns:
+        None
+    """
+```
+
 ### CommandArgs
 
 PwNo 提供了开箱即用的命令行参数方便使用，你无需任何设置，这并非强制的，它们都设置好了默认值。但 PwNo 推荐你结合 PwNo 提供的一些方法使得它更易用。
@@ -405,6 +465,52 @@ python exp.py -l libc.so.6 heapMaster
 #### dbg 的行为
 
 [dbg](#dbg) 的行为将会收到命令行参数的影响，你如果设置了 `host, port / remote`，或是设置了 `--gdb` 在 `gdb.debug` 模式下运行，又或是指定了 `-D` 禁用了 debug 模式，dbg 将不会使用 gdb 附加或是等待。
+
+#### pwno
+
+PwNo 现在会在安装时增加一个 `pwno` 可执行程序，利用它，你可以方便的寻找 gadget（未来可以做到更多...）
+
+```sh
+$ pwno --help
+usage: pwno [-h] [--force] [--prefix PREFIX] [--regs [REGS ...]] [--insts [INSTS ...]] [--strs [STRS ...]] file
+
+Search gadgets in binary
+
+positional arguments:
+  file                  The binary file to search gadgets in
+
+options:
+  -h, --help            show this help message and exit
+  --force, -f           Force search gadgets
+  --prefix PREFIX, -p PREFIX
+                        The prefix to use for the variables
+  --regs [REGS ...], -r [REGS ...]
+                        The registers to use for the variables
+  --insts [INSTS ...], -i [INSTS ...]
+                        The instructions together with a `ret`
+  --strs [STRS ...], -s [STRS ...]
+                        The strings to search for
+```
+
+##### gadget 查找
+
+选择一个 ELF 文件，pwno 就会自动产生一些常用的 gadget 地址。相同的 libc gadget 将被存放在缓存目录下，使其能够更迅速的被查找。
+当前它会对 `libc` 文件产生 `pop rdi|rsi|rdx|rax; ret`、`syscall` 和 `/bin/sh` 的地址
+你可以通过 `--regs`、`--insts` 和 `--strs` 来自定义
+
+当然，未来，PwNo 也将支持默认配置的设置，从而使其更加符合你的需要
+
+```sh
+$ pwno libc-2.23.so
+pop_rax_ret = libc.address + 0x3a738  # pop rax; ret;
+pop_rdi_ret = libc.address + 0x21112  # pop rdi; ret;
+pop_rdx_ret = libc.address + 0x1b92  # pop rdx; ret;
+pop_rsi_ret = libc.address + 0x202f8  # pop rsi; ret;
+syscall_ret = libc.address + 0xbc3f5  # syscall; ret;
+binsh = libc.address + 0x18ce57  # /bin/sh
+
+0.58s
+```
 
 ## ToDos
 

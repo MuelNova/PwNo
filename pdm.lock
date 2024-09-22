@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["cross_platform"]
 lock_version = "4.5.0"
-content_hash = "sha256:70e5f6f82f4bfab584ee436ce63ce24afb1b43e3b5a888368e36255cb1a8f66f"
+content_hash = "sha256:7515ff86f44d0843b6ff2f7a2367fa2f9bcbf028668cd77f527671063c9b08f2"
 
 [[metadata.targets]]
 requires_python = ">=3.10"
@@ -243,6 +243,14 @@ summary = "Get the currently executing AST node of a frame, and other informatio
 files = [
     {file = "executing-2.0.1-py2.py3-none-any.whl", hash = "sha256:eac49ca94516ccc753f9fb5ce82603156e590b27525a8bc32cce8ae302eb61bc"},
     {file = "executing-2.0.1.tar.gz", hash = "sha256:35afe2ce3affba8ee97f2d69927fa823b08b472b7b994e36a52a964b93d16147"},
+]
+
+[[package]]
+name = "filebytes"
+version = "0.10.2"
+summary = "Scripts to parse the following file formats - Executable and Linking Format (ELF), Portable Executable (PE), Mach-O and OAT (Android Runtime)."
+files = [
+    {file = "filebytes-0.10.2.tar.gz", hash = "sha256:764202f74d79e7587f04b6ad46f7c50485d8f32c4aeddd02200f1651a0892741"},
 ]
 
 [[package]]
@@ -635,6 +643,18 @@ dependencies = [
 files = [
     {file = "ROPGadget-7.4-py3-none-any.whl", hash = "sha256:394ba571277a28a987116fa91c5336524f9a89e9b60a54ba97f2c34823bd0270"},
     {file = "ROPGadget-7.4.tar.gz", hash = "sha256:a40626a32cf867d06192ef24e16221b2b7ba82e2ec84ab5bfdfb0b017559342f"},
+]
+
+[[package]]
+name = "ropper"
+version = "1.13.8"
+summary = "Show information about files in different file formats and find gadgets to build rop chains for different architectures."
+dependencies = [
+    "capstone",
+    "filebytes>=0.10.0",
+]
+files = [
+    {file = "ropper-1.13.8.tar.gz", hash = "sha256:b387f63028bec6743997bdce8170f6e465d58cba176d068006a3d915eeccf098"},
 ]
 
 [[package]]

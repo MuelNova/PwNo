@@ -11,7 +11,7 @@ from pwn import (
     warn as _warn,
     error as _error,
 )
-from ..context import config, get_instance
+from ..context import get_instance, config
 
 DBG_CNT = -1
 
