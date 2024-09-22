@@ -146,17 +146,20 @@ parser.add_argument(
 parser.add_argument(
     "--args", "-a", action="store", dest="RUNARGS", help="Arguments to run binary"
 )
+parser.add_argument(
+    "--checksec", "-c", action="store_true", help="Check security of the binary"
+)
 args = parser.parse_args()
 
 config = Config(**vars(args))
 try:
-    Elf = ELF(config.ATTACHMENT)
+    Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
     context.arch = Elf.arch
 except ELFError:
     Elf = None
     log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
 try:
-    libc = ELF(config.LIBC)
+    libc = ELF(config.LIBC, checksec=args.checksec)
 except ELFError:
     libc = None
     log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
