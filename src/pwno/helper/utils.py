@@ -23,7 +23,7 @@ from pwn import (
 from sorcery import args_with_source, spell
 from sorcery.core import FrameInfo
 
-from ..context import get_instance, get_config
+from ..context import get_instance, config
 
 DBG_CNT = -1
 
@@ -96,7 +96,6 @@ def dbg(
         force(bool)
             强制调试 gdb.debug() 的实例或是 remote 实例
     """
-    config = get_config()
     if (config.REMOTE or config.GDB or config.NO_DEBUG) and not force:
         return
     if sh is None:

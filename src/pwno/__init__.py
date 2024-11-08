@@ -13,4 +13,3 @@ while frame.f_back:
 if Path(frame.f_globals["__file__"]).name != "pwno":
     default_main()
 
-config = get_config()

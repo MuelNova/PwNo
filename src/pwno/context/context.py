@@ -14,6 +14,8 @@ from pydantic import (
 )
 from typing_extensions import Annotated
 
+from ..common.export_var import Export, set_export
+
 
 # ------- Default Settings -------
 class Config(BaseModel, extra="ignore"):
@@ -70,7 +72,13 @@ class Config(BaseModel, extra="ignore"):
                 capture_output=True,
                 text=True,
             ).stdout.split("\n")
-            output = filter(lambda x: "libc" in x, output_raw)
+
+            libc_patterns = [
+                lambda x: "libc.so.6" in x,
+                lambda x: "libc-2" in x,
+            ]
+            output = filter(lambda x: any(p(x) for p in libc_patterns),
+                             output_raw)
             libc_path = None
             for line in output:
                 libc_path = next(
@@ -164,7 +172,8 @@ def default_main():
     args = parser.parse_args()
 
     global config, Elf, libc
-    config = Config(**vars(args))
+
+    set_export(config, Config(**vars(args)))
 
     if not args.ATTACHMENT:
         info('No Attachment set, using "%s"...', config.ATTACHMENT)
@@ -172,25 +181,20 @@ def default_main():
         info('No Libc set, using "%s"...', config.LIBC)
 
     try:
-        Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
+        set_export(Elf, ELF(config.ATTACHMENT, checksec=args.checksec))
         context.arch = Elf.arch
     except ELFError:
         Elf = None
         log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
     try:
-        libc = ELF(config.LIBC, checksec=args.checksec)
+        set_export(libc, ELF(config.LIBC, checksec=args.checksec))
     except ELFError:
-        libc = None
         log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
 
 
-def get_config() -> Config:
-    return config if config else Config()
-
-
-config: Config = None
-Elf: ELF = None
-libc: ELF = None
+config: Config = Export[Config]()
+Elf: ELF = Export[ELF]()
+libc: ELF = Export[ELF]()
 
 context.log_level = "debug"
 context.os = "linux"
