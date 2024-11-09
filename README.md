@@ -127,6 +127,22 @@ from pwno import *
 
 ## Docs
 
+### Settings
+
+配置文件，默认位置在 `$HOME/.config/pwno/config.toml` 下，可通过环境变量 `PWNO_CONFIG_PATH` 设置
+
+example:
+
+```toml
+[general]
+CACHE_DIR = "/home/nova/.cache/pwno"
+
+[context]
+terminal = [ "tmux", "splitw", "-h",]
+log_level = "debug"
+os = "linux"
+```
+
 ### context
 
 #### abbr
