@@ -3,7 +3,7 @@ from pydantic import BaseModel, field_validator
 class ContextSettings(BaseModel):
 
     # context.terminal
-    terminal: list[str] = ""
+    terminal: list[str] = []
     log_level: str = "debug"
     os: str = "linux"
 

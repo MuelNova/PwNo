@@ -1,5 +1,6 @@
 import os
 import toml
+import atexit
 
 from pathlib import Path
 from typing import Tuple, Type
@@ -26,7 +27,7 @@ class Settings(BaseSettings):
     general: GeneralSettings = GeneralSettings()
     context: ContextSettings = ContextSettings()
 
-    def __del__(self):
+    def save(self):
         if self.model_config["toml_file"] != _DEFAULT_CONFIG_PATH:
             return
         try:
@@ -49,5 +50,4 @@ class Settings(BaseSettings):
         return (TomlConfigSettingsSource(settings_cls), env_settings, init_settings)
 
 settings = Settings()
-
-print(settings)
+atexit.register(settings.save)
