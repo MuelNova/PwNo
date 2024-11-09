@@ -46,6 +46,6 @@ def main():
     args.prefix = (
         args.prefix
         if args.prefix
-        else ("Elf.address" if args.file.elftype == "EXEC" else "libc.address")
+        else ("elf.address" if args.file.elftype == "EXEC" else "libc.address")
     )
     pprint_gadgets(**vars(args))

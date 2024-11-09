@@ -1,6 +1,7 @@
 import os
 
-from pwn import *
+from pathlib import Path
+from pwn import gdb, process, remote, context
 
 from ..helper.utils import DBG_CNT
 from ..context import Config

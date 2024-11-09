@@ -5,6 +5,9 @@ from pathlib import Path
 
 from elftools.common.exceptions import ELFError
 from pwn import *
+from pwn import elf as pwn_elf
+del elf
+
 from pydantic import (
     BaseModel,
     Field,
@@ -15,7 +18,7 @@ from pydantic import (
 )
 from typing_extensions import Annotated
 
-
+from ..common.deprecate import Deprecated
 # ------- Default Settings -------
 class Config(BaseModel, extra="ignore"):
     ATTACHMENT: Annotated[str, Field(validate_default=True)] = None
@@ -109,6 +112,12 @@ class Config(BaseModel, extra="ignore"):
 
 
 def default_main():
+    """
+    We should set `builtins.config, builtins.elf, builtins.libc`
+    As they were None when imported, and then initialized in this function.
+    
+    This avoid the reference problem when using `from pwno import *`
+    """
     parser = ArgumentParser(description="Pwnable Commandline")
 
     parser.add_argument("ATTACHMENT", nargs="?")
@@ -170,7 +179,7 @@ def default_main():
 
     args = parser.parse_args()
 
-    global config, Elf, libc
+    global config, elf, libc
 
     # set_export(config, Config(**vars(args)))
     builtins.config = Config(**vars(args))
@@ -180,12 +189,13 @@ def default_main():
         info('No Libc set, using "%s"...', config.LIBC)
 
     try:
-        # set_export(Elf, ELF(config.ATTACHMENT, checksec=args.checksec))
-        builtins.Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
-        context.arch = Elf.arch
+        # set_export(elf, ELF(config.ATTACHMENT, checksec=args.checksec))
+        builtins.elf = ELF(config.ATTACHMENT, checksec=args.checksec)
+        builtins.Elf = Deprecated(elf, 'Elf', 'elf')
+        context.arch = elf.arch
     except ELFError:
-        Elf = None
-        log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
+        builtins.elf = None
+        log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `elf` is not set")
     try:
         # set_export(libc, ELF(config.LIBC, checksec=args.checksec))
         builtins.libc = ELF(config.LIBC, checksec=args.checksec)
@@ -194,7 +204,7 @@ def default_main():
 
 
 config: Config
-Elf: ELF
+elf: ELF
 libc: ELF
 
 context.log_level = "debug"

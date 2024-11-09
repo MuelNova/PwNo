@@ -449,18 +449,20 @@ python exp.py -r easy.challenge.pwn:12345
 python exp.py -h easy.challenge.pwn -p 12345
 ```
 
-#### Elf、libc
+#### elf、libc
 
-PwNo 会导出两个对象，`Elf` 和 `libc`，而它们的值即为命令行参数所传入的值。例如
+PwNo 会导出两个对象，`elf` 和 `libc`，而它们的值即为命令行参数所传入的值。例如
 
 ```sh
 python exp.py -l libc.so.6 heapMaster
 
-# Elf: ELF('./heapMaster')
+# elf: ELF('./heapMaster')
 # libc: ELF('./libc.so.6')
 ```
 
-默认情况下，`Elf` 将会指向当前工作目录 (CWD) 中的第一个 `ELF` 文件，而 `libc` 将会指向 `/bin/sh` 使用的 libc，因为这会更加便于调试。
+默认情况下，`elf` 将会指向当前工作目录 (CWD) 中的第一个 `ELF` 文件，而 `libc` 将会指向 `/bin/sh` 使用的 libc，因为这会更加便于调试。
+
+> 而原本 pwntools 导出的 pwnlib.elf module 将被重命名为 pwn_elf
 
 #### dbg 的行为
 
