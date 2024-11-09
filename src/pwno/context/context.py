@@ -1,4 +1,5 @@
 import subprocess
+import builtins
 from argparse import ArgumentParser
 from pathlib import Path
 
@@ -13,8 +14,6 @@ from pydantic import (
     model_validator,
 )
 from typing_extensions import Annotated
-
-from ..common.export_var import Export, set_export
 
 
 # ------- Default Settings -------
@@ -173,28 +172,30 @@ def default_main():
 
     global config, Elf, libc
 
-    set_export(config, Config(**vars(args)))
-
+    # set_export(config, Config(**vars(args)))
+    builtins.config = Config(**vars(args))
     if not args.ATTACHMENT:
         info('No Attachment set, using "%s"...', config.ATTACHMENT)
     if not args.LIBC:
         info('No Libc set, using "%s"...', config.LIBC)
 
     try:
-        set_export(Elf, ELF(config.ATTACHMENT, checksec=args.checksec))
+        # set_export(Elf, ELF(config.ATTACHMENT, checksec=args.checksec))
+        builtins.Elf = ELF(config.ATTACHMENT, checksec=args.checksec)
         context.arch = Elf.arch
     except ELFError:
         Elf = None
         log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `Elf` is not set")
     try:
-        set_export(libc, ELF(config.LIBC, checksec=args.checksec))
+        # set_export(libc, ELF(config.LIBC, checksec=args.checksec))
+        builtins.libc = ELF(config.LIBC, checksec=args.checksec)
     except ELFError:
         log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
 
 
-config: Config = Export[Config]()
-Elf: ELF = Export[ELF]()
-libc: ELF = Export[ELF]()
+config: Config
+Elf: ELF
+libc: ELF
 
 context.log_level = "debug"
 context.os = "linux"

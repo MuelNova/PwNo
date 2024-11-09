@@ -3,7 +3,9 @@ import os
 from pwn import *
 
 from ..helper.utils import DBG_CNT
-from .context import config
+from ..context import Config
+
+config: Config
 
 
 def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | remote:

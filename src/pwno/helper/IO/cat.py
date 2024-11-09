@@ -1,9 +1,10 @@
 from typing import Any
+from pwn import ELF
 
-from ...context import libc
 from ...typing import p64
 from .struct import IO_FILE_plus
 
+libc: ELF
 
 class HouseOfCat:
     """

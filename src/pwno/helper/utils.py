@@ -23,9 +23,11 @@ from pwn import (
 from sorcery import args_with_source, spell
 from sorcery.core import FrameInfo
 
-from ..context import get_instance, config
+from ..context import get_instance, Config
 
 DBG_CNT = -1
+
+config: Config
 
 
 def uu64(
