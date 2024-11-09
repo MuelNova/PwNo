@@ -7,7 +7,6 @@ from ..gadget import pprint_gadgets
 
 def main():
     parser = ArgumentParser(description="Search gadgets in binary")
-    parser.add_argument("file", help="The binary file to search gadgets in")
     parser.add_argument(
         "--force", "-f", action="store_true", help="Force search gadgets"
     )
@@ -21,26 +20,24 @@ def main():
         "--regs",
         "-r",
         help="The registers to use for the variables",
-        action="store",
-        nargs="*",
+        action="append",
         default=[],
     )
     parser.add_argument(
         "--insts",
         "-i",
         help="The instructions together with a `ret`",
-        action="store",
-        nargs="*",
+        action="append",
         default=[],
     )
     parser.add_argument(
         "--strs",
         "-s",
         help="The strings to search for",
-        action="store",
-        nargs="*",
+        action="append",
         default=[],
     )
+    parser.add_argument("file", help="The binary file to search gadgets in")
     args = parser.parse_args()
     args.file = ELF(args.file, checksec=False)
     args.prefix = (

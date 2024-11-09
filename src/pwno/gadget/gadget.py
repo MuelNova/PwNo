@@ -80,36 +80,42 @@ def pprint_gadgets(
         None
     """
     rs = load_gadgets(file, force=force, **kwargs)
-    if not regs:
+    if not regs and not insts and not strs:
         regs = ["rdi", "rsi", "rdx", "rax"]
-    if not insts:
         insts = [
             "syscall",
         ]
-    if not strs:
         strs = ["/bin/sh"]
 
-    queries = "|".join(
-        chain((f"pop {reg}; ret;" for reg in regs), (f"{inst}; ret;" for inst in insts))
-    )
+    queries = list()
+    if regs:
+        queries += (f"pop {reg}; ret;" for reg in regs)
+    if insts:
+        queries += (f"{inst}; ret;" for inst in insts)
+    queries = "|".join(chain(queries))
 
     def gadget_to_var(gadget: str):
         return gadget.replace(";", "").strip().replace(" ", "_")
 
     def string_to_var(string: str):
         return string.replace("/", "").replace(".", "").replace("-", "")
+    
+    gadgets = []
+    strings = []
 
-    gadgets = rs.search(queries)
-    for g in gadgets:
-        gadget: Gadget = g[1]
-        print(
-            f"{gadget_to_var(gadget.simpleInstructionString())} = "
-            f"{prefix + ' + ' if prefix else ''}"
-            f"{gadget.address:#x}  # {gadget._gadget}"
-        )
+    if queries:
+        gadgets = rs.search(queries)
+        for g in gadgets:
+            gadget: Gadget = g[1]
+            print(
+                f"{gadget_to_var(gadget.simpleInstructionString())} = "
+                f"{prefix + ' + ' if prefix else ''}"
+                f"{gadget.address:#x}  # {gadget._gadget}"
+            )
 
-    strings = rs.searchString("|".join(strs))
-    strings: list[tuple[int, bytes]] = next(iter(strings.values()), [])
+    if strs:
+        strings = rs.searchString("|".join(strs))
+        strings: list[tuple[int, bytes]] = next(iter(strings.values()), [])
     for address, string in strings:
         print(
             f"{string_to_var(string.decode())} = {prefix + ' + ' if prefix else ''}"
