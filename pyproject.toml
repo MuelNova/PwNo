@@ -11,6 +11,8 @@ dependencies = [
     "setuptools>=71.1.0",
     "sorcery>=0.2.2",
     "ropper>=1.13.8",
+    "pydantic-settings>=2.6.1",
+    "toml>=0.10.2",
 ]
 requires-python = ">=3.10"
 readme = "README.md"

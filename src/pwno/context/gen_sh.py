@@ -5,6 +5,7 @@ from pwn import gdb, process, remote, context
 
 from ..helper.utils import DBG_CNT
 from ..context import Config
+from ..settings import settings
 
 config: Config
 
@@ -98,7 +99,11 @@ def get_dbg_args() -> str:  # noqa: C901
     return "\n".join(find_dbg.dbg)
 
 
-def initialization():
+def set_terminal():
+    if settings.context.terminal:
+        context.terminal = settings.context.terminal
+        return
+
     # if we're using wsl, set context terminal to cmd.exe
     if "WSL_DISTRO_NAME" in os.environ:
         args = ["cmd.exe", "/c", "start"]
@@ -111,6 +116,13 @@ def initialization():
                 args.extend(["bash.exe", "-c"])
 
         context.terminal = args
+
+def initialization():
+    context.log_level = settings.context.log_level
+    context.os = settings.context.os
+    
+    set_terminal()
+    
 
 
 initialization()

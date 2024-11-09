@@ -35,7 +35,7 @@ def load_gadgets(file: ELFType, force=None, **kwargs) -> RopperService:
     options.update(kwargs)
 
     if cache:
-        cache_file = Path(settings.CACHE_DIR) / file.buildid.hex()
+        cache_file = Path(settings.general.CACHE_DIR) / file.buildid.hex()
         if not cache_file.exists() or force:
             rs = RopperService(options)
             rs.addFile(file.path)

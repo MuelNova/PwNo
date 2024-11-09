@@ -205,7 +205,5 @@ def default_main():
 
 config: Config
 elf: ELF
+Elf: ELF  # Deprecated
 libc: ELF
-
-context.log_level = "debug"
-context.os = "linux"
