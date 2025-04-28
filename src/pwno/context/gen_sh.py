@@ -107,22 +107,35 @@ def set_terminal():
     # if we're using wsl, set context terminal to cmd.exe
     if "WSL_DISTRO_NAME" in os.environ:
         args = ["cmd.exe", "/c", "start"]
-        if "WT_SESSION" in os.environ:
-            args.extend(["wt.exe", "-w", "0"])
+        # if "WT_SESSION" in os.environ:
+        args.extend(["wt.exe", "-w", "0"])
 
-            if distro_name := os.getenv("WSL_DISTRO_NAME"):
-                args.extend(["wsl.exe", "-d", distro_name, "bash", "-c"])
-            else:
-                args.extend(["bash.exe", "-c"])
+        if distro_name := os.getenv("WSL_DISTRO_NAME"):
+            args.extend(["wsl.exe", "-d", distro_name, "bash", "-c"])
+        else:
+            args.extend(["bash.exe", "-c"])
 
         context.terminal = args
+
+
+def remove_wsl_path():
+    original_path = os.environ.get("PATH", "")
+    path_components = original_path.split(os.pathsep)
+
+    # Filter out paths starting with '/mnt/'
+    filtered_components = set([p for p in path_components if not p.startswith("/mnt/")])
+
+    # Join the remaining components and update PATH
+    new_path = os.pathsep.join(sorted(filtered_components, key=len))
+    os.environ["PATH"] = new_path
+
 
 def initialization():
     context.log_level = settings.context.log_level
     context.os = settings.context.os
-    
     set_terminal()
-    
+    if "WSL_DISTRO_NAME" in os.environ:
+        remove_wsl_path()
 
 
 initialization()
