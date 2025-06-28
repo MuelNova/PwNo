@@ -18,6 +18,9 @@ from typing_extensions import Annotated
 from ..common.deprecate import Deprecated
 
 from pwn import *  # type: ignore
+from pwn import elf as pwn_elf
+
+del elf
 
 
 # ------- Default Settings -------
@@ -204,6 +207,11 @@ def default_main():
         log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
 
 
+if TYPE_CHECKING:
+    config: Config
+    elf: ELF
+    Elf: ELF  # Deprecated
+    libc: ELF
 if TYPE_CHECKING:
     config: Config
     elf: ELF

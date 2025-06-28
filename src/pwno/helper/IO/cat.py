@@ -1,7 +1,6 @@
 from typing import Any
-from pwn import ELF
+from pwn import ELF, p64
 
-from ...typing import p64
 from .struct import IO_FILE_plus
 
 libc: ELF
