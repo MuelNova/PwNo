@@ -6,6 +6,7 @@ from .struct import IO_FILE_plus
 
 libc: ELF
 
+
 class HouseOfCat:
     """
     FSOP 版本的 house_of_cat，在 2.35 下测试通过，返回一个 fake_IO payload
@@ -63,7 +64,7 @@ class HouseOfCat:
                 return self.file._IO_backup_base - 0xB0
             return getattr(self.file, self.MAPPING[__name])
         else:
-            return super().__getattr__(__name)
+            return getattr(super(), "__name")
 
     def __bytes__(self) -> bytes:
         return bytes(self.file).ljust(0x110, b"\x00") + p64(

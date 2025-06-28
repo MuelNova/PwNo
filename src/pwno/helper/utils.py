@@ -7,7 +7,8 @@ from pwn import (
 from pwn import (
     error as _error,
 )
-from pwn import gdb, hexdump, pause, process, pwnlib, remote
+from pwn import gdb, hexdump, pause, process, remote
+from pwn import u64, u32
 from pwn import (
     info as _info,
 )
@@ -32,8 +33,8 @@ config: Config
 
 def uu64(
     data: bytes,
-    endianness: Literal["little", "big"] = None,
-    sign: bool = None,
+    endianness: Literal["little", "big"] | None = None,
+    sign: bool | None = None,
     **kwargs: Any,
 ):
     """
@@ -50,15 +51,13 @@ def uu64(
     Returns:
         The unpacked integer.
     """
-    return pwnlib.util.packing.u64(
-        data.ljust(8, b"\x00"), endianness=endianness, sign=sign, **kwargs
-    )
+    return u64(data.ljust(8, b"\x00"), endianness=endianness, sign=sign, **kwargs)
 
 
 def uu32(
     data: bytes,
-    endianness: Literal["little", "big"] = None,
-    sign: bool = None,
+    endianness: Literal["little", "big"] | None = None,
+    sign: bool | None = None,
     **kwargs: Any,
 ):
     """
@@ -75,13 +74,11 @@ def uu32(
     Returns:
         The unpacked integer.
     """
-    return pwnlib.util.packing.u32(
-        data.ljust(4, b"\x00"), endianness=endianness, sign=sign, **kwargs
-    )
+    return u32(data.ljust(4, b"\x00"), endianness=endianness, sign=sign, **kwargs)
 
 
 def dbg(
-    gdb_script: str = None,
+    gdb_script: str | None = None,
     sh: process | remote | None = None,
     s: int = 4,
     force: bool = False,
@@ -109,7 +106,7 @@ def dbg(
     DBG_CNT += 1
     if config.DBG and DBG_CNT not in config.DBG:
         return
-    gdb.attach(sh, gdb_script)
+    gdb.attach(sh, gdb_script or "")
     if not config.GDB:
         if s == -1:
             return

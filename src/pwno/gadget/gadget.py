@@ -35,13 +35,17 @@ def load_gadgets(file: ELFType, force=None, **kwargs) -> RopperService:
     options.update(kwargs)
 
     if cache:
-        cache_file = Path(settings.general.CACHE_DIR) / file.buildid.hex()
+        cache_file = Path(settings.general.CACHE_DIR) / (
+            file.buildid.hex() if file.buildid else file.path
+        )
         if not cache_file.exists() or force:
             rs = RopperService(options)
             rs.addFile(file.path)
             rs.loadGadgetsFor()
-            gadgets = rs.getFileFor(file.path).gadgets
-            pickle.dump(gadgets, cache_file.open("wb"))
+            gadgets = rs.getFileFor(file.path)
+            if gadgets is None:
+                raise ValueError(f"Failed to load gadgets for {file.path}")
+            pickle.dump(gadgets.gadgets, cache_file.open("wb"))
         else:
             rs = RopperService(options)
             rs.addFile(file.path)
@@ -99,7 +103,7 @@ def pprint_gadgets(
 
     def string_to_var(string: str):
         return string.replace("/", "").replace(".", "").replace("-", "")
-    
+
     gadgets = []
     strings = []
 
@@ -114,8 +118,8 @@ def pprint_gadgets(
             )
 
     if strs:
-        strings = rs.searchString("|".join(strs))
-        strings: list[tuple[int, bytes]] = next(iter(strings.values()), [])
+        strdict = rs.searchString("|".join(strs))
+        strings: list[tuple[int, bytes]] = next(iter(strdict.values()), [])
     for address, string in strings:
         print(
             f"{string_to_var(string.decode())} = {prefix + ' + ' if prefix else ''}"

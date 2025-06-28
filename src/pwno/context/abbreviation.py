@@ -1,12 +1,14 @@
 import inspect
-from typing import Any, Callable, Tuple, TypeVar
+from typing import Any, Callable, Tuple, TypeVar, ParamSpec, Concatenate
 
-from pwn import process, pwnlib, remote
+from pwn import process, remote
 
 T = TypeVar("T", bound=Callable[..., Any])
+P = ParamSpec("P")
+R = TypeVar("R")
 
 
-def get_instance(name: str = None, start: int = 1) -> Tuple[str, process | remote]:
+def get_instance(name: str = "", start: int = 1) -> Tuple[str, process | remote]:
     """
     拿取 process/remote 实例，如果没有传入 name 则会自动寻找
     当前上下文中最新的一个 process/remote 实例。
@@ -23,15 +25,15 @@ def get_instance(name: str = None, start: int = 1) -> Tuple[str, process | remot
             name 为实例的名字，instance 为实例本身
     """
     ctx = inspect.currentframe()
+    if ctx is None:
+        raise ValueError("No current frame found")
     for _ in range(start):
         ctx = ctx.f_back
         if ctx is None:
             break
     while ctx is not None:
         for k, v in reversed(ctx.f_locals.items()):
-            if isinstance(
-                v, (pwnlib.tubes.process.process, pwnlib.tubes.remote.remote)
-            ):
+            if isinstance(v, (process, remote)):
                 if name is not None:
                     if k == name:
                         return k, v
@@ -42,9 +44,12 @@ def get_instance(name: str = None, start: int = 1) -> Tuple[str, process | remot
     raise ValueError("No instance found")
 
 
-def abbr(func: T) -> T:
+def abbr(func: Callable[Concatenate[Any, P], R]) -> Callable[P, R]:
     """
     提供一个函数的缩写，如果传入类则默认找到当前上下文中最新的一个实例(process/remote)。
+
+    这个函数会移除方法的 self 参数，将实例方法转换为独立函数。
+
     参数：
           func(Callable)
             需要缩写的函数，可以是类的方法或者普通函数，例如
@@ -74,16 +79,18 @@ def abbr(func: T) -> T:
         flag = False
         while ctx is not None and not flag:
             ctx = ctx.f_back
+            if ctx is None:
+                break
             for k, v in reversed(ctx.f_locals.items()):
                 if v == func.__self__:
                     name = k
                     flag = True
                     break
     else:
-        name = None
+        name = ""
     sh = None
 
-    def inner(*args, **kwargs):
+    def inner(*args: P.args, **kwargs: P.kwargs) -> R:
         nonlocal sh
         if (
             sh is None

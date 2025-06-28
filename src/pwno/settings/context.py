@@ -1,7 +1,7 @@
 from pydantic import BaseModel, field_validator
 
-class ContextSettings(BaseModel):
 
+class ContextSettings(BaseModel):
     # context.terminal
     terminal: list[str] = []
     log_level: str = "debug"
@@ -12,4 +12,3 @@ class ContextSettings(BaseModel):
         if isinstance(v, str):
             return v.split(" ")
         return v
-    

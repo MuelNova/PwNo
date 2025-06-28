@@ -9,26 +9,25 @@ from pydantic_settings import (
     BaseSettings,
     SettingsConfigDict,
     PydanticBaseSettingsSource,
-    TomlConfigSettingsSource
+    TomlConfigSettingsSource,
 )
 from .general import GeneralSettings
 from .context import ContextSettings
+
 # 配置文件路径
 _DEFAULT_CONFIG_PATH = Path.home() / ".config" / "pwno" / "config.toml"
 
 CONFIG_FILE = os.environ.get("PWNO_CONFIG_PATH") or _DEFAULT_CONFIG_PATH
 
+
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(
-        extra="ignore",
-        toml_file=CONFIG_FILE
-    )
+    model_config = SettingsConfigDict(extra="ignore", toml_file=CONFIG_FILE)
 
     general: GeneralSettings = GeneralSettings()
     context: ContextSettings = ContextSettings()
 
     def save(self):
-        if self.model_config["toml_file"] != _DEFAULT_CONFIG_PATH:
+        if self.model_config.get("toml_file") != _DEFAULT_CONFIG_PATH:
             return
         try:
             if not Path(_DEFAULT_CONFIG_PATH).parent.exists():
@@ -48,6 +47,7 @@ class Settings(BaseSettings):
         file_secret_settings: PydanticBaseSettingsSource,
     ) -> Tuple[PydanticBaseSettingsSource, ...]:
         return (TomlConfigSettingsSource(settings_cls), env_settings, init_settings)
+
 
 settings = Settings()
 atexit.register(settings.save)

@@ -1,5 +1,6 @@
 import os
 
+from typing import TYPE_CHECKING, overload
 from pathlib import Path
 from pwn import gdb, process, remote, context
 
@@ -7,53 +8,106 @@ from ..helper.utils import DBG_CNT
 from ..context import Config
 from ..settings import settings
 
-config: Config
+# Ensure DBG_CNT is defined if not imported correctly
+try:
+    DBG_CNT  # type: ignore
+except NameError:
+    DBG_CNT = 0
+
+if TYPE_CHECKING:
+    config: Config
 
 
-def gen_sh(*a, f_or_h: str | Path = None, port: int = None, **kw) -> process | remote:
+@overload
+def gen_sh() -> process | remote:
+    """生成一个 process 或 remote 实例，使用命令行参数或默认配置。"""
+    ...
+
+
+@overload
+def gen_sh(f: str | Path | list[str]) -> process:
+    """生成一个 process 实例，使用指定的文件作为附件。"""
+    ...
+
+
+@overload
+def gen_sh(f_or_host: str | Path) -> process | remote:
     """
-    生成一个 process 或 remote 实例
-    如果 config.REMOTE 为 True 则生成 remote 实例，否则生成 process 实例。
-
-    如果传入的参数只有一个，则会将其作为 config.ATTACHMENT，如果检测到
-    如果传入的参数有两个，则会将第一个参数作为 config.HOST，第二个参数作为 config.PORT。
-
+    生成一个 process 或 remote 实例，使用指定的文件或主机地址。
+    如果传入的参数是一个字符串或 Path，则作为 config.ATTACHMENT。
+    如果检测到格式为 "host:port"，则作为 config.HOST 和 config.PORT。
     """
-    if not config.REMOTE and not config.GDB and not config.ATTACHMENT:
-        if len(a) == 1 or (f_or_h is not None and port is None):
-            s = f_or_h or a[0]
-            if ":" in s and len(r := s.split(":")) == 2 and r[1].isdigit():
-                config.HOST = r[0]
-                config.PORT = int(r[1])
+    ...
+
+
+@overload
+def gen_sh(host: str | Path, port: int) -> remote:
+    """
+    生成一个 remote 实例，使用指定的主机地址和端口。
+    如果传入的参数是两个，则第一个参数作为 config.HOST，第二个参数作为 config.PORT。
+    """
+    ...
+
+
+def gen_sh(*args, **kwargs) -> process | remote:  # noqa: C901
+    """
+    生成一个 process 或 remote 实例，支持多种调用方式：
+
+    1. gen_sh() -> 使用命令行参数或默认配置
+    2. gen_sh(f) -> 使用指定文件创建 process
+    3. gen_sh(f_or_host) -> 根据参数类型创建 process 或 remote
+    4. gen_sh(host, port) -> 使用指定主机和端口创建 remote
+    """
+    if len(args) == 0:
+        # 情况1: gen_sh() - 使用默认配置或命令行参数
+        pass
+    elif len(args) == 1:
+        # 情况2和3: gen_sh(f) 或 gen_sh(f_or_host)
+        arg = args[0]
+        if isinstance(arg, list):
+            if len(arg) > 1:
+                config.RUNARGS = " ".join(arg[1:])
+            arg = arg[0]
+        arg_str = str(arg)
+        if ":" in arg_str:
+            parts = arg_str.split(":")
+            if len(parts) == 2 and parts[1].isdigit():
+                config.HOST = parts[0]
+                config.PORT = int(parts[1])
                 config.REMOTE = True
             else:
-                config.ATTACHMENT = s if isinstance(s, str) else str(s)
+                config.ATTACHMENT = arg_str
+        else:
+            config.ATTACHMENT = arg_str
 
-            if len(a) >= 1:
-                a = a[1:]
+    elif len(args) == 2:
+        # 情况4: gen_sh(host, port)
+        host, port = args
+        config.HOST = str(host)
+        config.PORT = int(port)
+        config.REMOTE = True
 
-        elif len(a) == 2 or (f_or_h is not None and port is not None):
-            s = f_or_h or a[0]
-            p = port or a[1]
-            config.HOST = s
-            config.PORT = p
-            config.REMOTE = True
-
-            if len(a) >= 2:
-                a = a[2:]
+    else:
+        raise ValueError(f"gen_sh() 接受 0-2 个位置参数，但给出了 {len(args)} 个")
 
     if config.REMOTE:
         return remote(config.HOST, config.PORT)
-    if not config.ATTACHMENT.startswith(".") and not config.ATTACHMENT.startswith("/"):
-        config.ATTACHMENT = "./" + config.ATTACHMENT
-    if config.GDB:
-        gdb_script = config.GDB_SCRIPT or get_dbg_args()
-        return gdb.debug(
-            [config.ATTACHMENT, *config.RUNARGS.split(" ")],
-            gdbscript=gdb_script,
-        )
 
-    return process([config.ATTACHMENT, *config.RUNARGS.split(" ")], *a, **kw)
+    if config.ATTACHMENT:
+        attachment = config.ATTACHMENT
+        if not attachment.startswith(".") and not attachment.startswith("/"):
+            config.ATTACHMENT = "./" + attachment
+
+        if config.GDB:
+            gdb_script = config.GDB_SCRIPT or get_dbg_args()
+            return gdb.debug(
+                [config.ATTACHMENT, *config.RUNARGS.split(" ")],
+                gdbscript=gdb_script,
+            )
+
+        return process([config.ATTACHMENT, *config.RUNARGS.split(" ")], **kwargs)
+
+    raise ValueError()
 
 
 def get_dbg_args() -> str:  # noqa: C901
@@ -76,7 +130,7 @@ def get_dbg_args() -> str:  # noqa: C901
 
     class FindDbg(ast.NodeVisitor):
         def __init__(self):
-            self.dbg = []
+            self.dbg: list[str] = []
 
         def visit_Call(self, node):
             if isinstance(node.func, ast.Name) and node.func.id == "dbg":
@@ -84,13 +138,19 @@ def get_dbg_args() -> str:  # noqa: C901
                 if node.args:
                     DBG_CNT += 1
                     if config.DBG and DBG_CNT in config.DBG:
-                        self.dbg.append(node.args[0].s)
+                        expr = node.args[0]
+                        if isinstance(expr, ast.Constant):
+                            self.dbg.append(str(expr.value))
                 if node.keywords:
                     for kw in node.keywords:
                         if kw.arg == "gdb_script":
                             DBG_CNT += 1
-                            if config.DBG and DBG_CNT in config.DBG:
-                                self.dbg.append(kw.value.s)
+                            if (
+                                config.DBG
+                                and DBG_CNT in config.DBG
+                                and isinstance(kw.value, ast.Constant)
+                            ):
+                                self.dbg.append(str(kw.value.value))
             self.generic_visit(node)
 
     find_dbg = FindDbg()

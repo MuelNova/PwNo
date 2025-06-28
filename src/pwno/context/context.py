@@ -4,10 +4,7 @@ from argparse import ArgumentParser
 from pathlib import Path
 
 from elftools.common.exceptions import ELFError
-from pwn import *
-from pwn import elf as pwn_elf
-del elf
-
+from typing import TYPE_CHECKING
 from pydantic import (
     BaseModel,
     Field,
@@ -19,23 +16,27 @@ from pydantic import (
 from typing_extensions import Annotated
 
 from ..common.deprecate import Deprecated
+
+from pwn import *  # type: ignore
+
+
 # ------- Default Settings -------
 class Config(BaseModel, extra="ignore"):
-    ATTACHMENT: Annotated[str, Field(validate_default=True)] = None
+    ATTACHMENT: Annotated[str, Field(validate_default=True)] = ""
     RUNARGS: str = ""
-    LIBC: Annotated[str, Field(validate_default=True)] = None
+    LIBC: Annotated[str | None, Field(validate_default=True)] = None
     HOST: str = ""
     PORT: int = 0
 
     NO_DEBUG: bool = False
     REMOTE: bool = False
     GDB: bool = False  # gdb.debug(elf.path, gdbscript=gdbscript)
-    GDB_SCRIPT: Annotated[str, Field(validate_default=True)] = None
-    DBG: Annotated[list[int], Field(validate_default=True)] = None
+    GDB_SCRIPT: Annotated[str | None, Field(validate_default=True)] = None
+    DBG: Annotated[list[int] | None, Field(validate_default=True)] = None
 
     @field_validator("ATTACHMENT", mode="before")
     def _attachment(cls, value) -> str:
-        if value is None:
+        if not value:
 
             def is_elf(path: Path):
                 try:
@@ -79,15 +80,14 @@ class Config(BaseModel, extra="ignore"):
                 lambda x: "libc.so.6" in x,
                 lambda x: "libc-2" in x,
             ]
-            output = filter(lambda x: any(p(x) for p in libc_patterns),
-                             output_raw)
-            libc_path = None
+            output = filter(lambda x: any(p(x) for p in libc_patterns), output_raw)
+            libc_path = ""
             for line in output:
                 libc_path = next(
                     filter(
                         lambda x: Path(x).is_file(), line.strip("\t").strip().split(" ")
                     ),
-                    None,
+                    "",
                 )
                 if libc_path:
                     break
@@ -115,7 +115,7 @@ def default_main():
     """
     We should set `builtins.config, builtins.elf, builtins.libc`
     As they were None when imported, and then initialized in this function.
-    
+
     This avoid the reference problem when using `from pwno import *`
     """
     parser = ArgumentParser(description="Pwnable Commandline")
@@ -182,7 +182,7 @@ def default_main():
     global config, elf, libc
 
     # set_export(config, Config(**vars(args)))
-    builtins.config = Config(**vars(args))
+    builtins.config = Config(**vars(args))  # type: ignore
     if not args.ATTACHMENT:
         info('No Attachment set, using "%s"...', config.ATTACHMENT)
     if not args.LIBC:
@@ -190,20 +190,22 @@ def default_main():
 
     try:
         # set_export(elf, ELF(config.ATTACHMENT, checksec=args.checksec))
-        builtins.elf = ELF(config.ATTACHMENT, checksec=args.checksec)
-        builtins.Elf = Deprecated(elf, 'Elf', 'elf')
+        builtins.elf = ELF(config.ATTACHMENT, checksec=args.checksec)  # type: ignore
+        builtins.Elf = Deprecated(elf, "Elf", "elf")  # type: ignore
         context.arch = elf.arch
     except ELFError:
-        builtins.elf = None
+        builtins.elf = None  # type: ignore
         log.warning(f"{config.ATTACHMENT} is not a valid ELF file!, `elf` is not set")
     try:
         # set_export(libc, ELF(config.LIBC, checksec=args.checksec))
-        builtins.libc = ELF(config.LIBC, checksec=args.checksec)
+        setattr(builtins, "libc", ELF(config.LIBC, checksec=args.checksec))
+        builtins.libc  # type: ignore
     except ELFError:
         log.warning(f"{config.LIBC} is not a valid ELF file!, `libc` is not set")
 
 
-config: Config
-elf: ELF
-Elf: ELF  # Deprecated
-libc: ELF
+if TYPE_CHECKING:
+    config: Config
+    elf: ELF
+    Elf: ELF  # Deprecated
+    libc: ELF
