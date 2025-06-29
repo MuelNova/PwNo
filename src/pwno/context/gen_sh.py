@@ -18,6 +18,80 @@ if TYPE_CHECKING:
     config: Config
 
 
+class SHWrapper:
+    def __init__(self, target: process | remote):
+        object.__setattr__(self, "target", target)
+
+    def __enter__(self):
+        return self.target
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        if hasattr(self.target, "close"):
+            self.target.close()
+        return False
+
+    def __getattr__(self, name):
+        return getattr(self.target, name)
+
+    def __setattr__(self, name, value):
+        if name == "target":
+            object.__setattr__(self, name, value)
+        else:
+            setattr(self.target, name, value)
+
+    def __getattribute__(self, name):
+        # 对于特殊属性，返回目标对象的值
+        if name in ("__class__", "__module__", "__dict__"):
+            target = object.__getattribute__(self, "target")
+            return getattr(target, name)
+        elif name == "target":
+            return object.__getattribute__(self, name)
+        else:
+            try:
+                return object.__getattribute__(self, name)
+            except AttributeError:
+                target = object.__getattribute__(self, "target")
+                return getattr(target, name)
+
+    def __eq__(self, other):
+        """比较时使用目标对象"""
+        if hasattr(other, "target"):
+            return self.target == other.target
+        return self.target == other
+
+    def __ne__(self, other):
+        """不等比较时使用目标对象"""
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        """哈希时使用目标对象"""
+        return hash(self.target)
+
+    def __repr__(self):
+        """字符串表示时使用目标对象"""
+        return repr(self.target)
+
+    def __str__(self):
+        """字符串转换时使用目标对象"""
+        return str(self.target)
+
+    def __bool__(self):
+        """布尔值转换时使用目标对象"""
+        return bool(self.target)
+
+    def __len__(self):
+        """长度检查时使用目标对象"""
+        return len(self.target)
+
+    def __iter__(self):
+        """迭代时使用目标对象"""
+        return iter(self.target)
+
+    def __contains__(self, item):
+        """包含检查时使用目标对象"""
+        return item in self.target
+
+
 @overload
 def gen_sh() -> process | remote:
     """生成一个 process 或 remote 实例，使用命令行参数或默认配置。"""
@@ -49,7 +123,7 @@ def gen_sh(host: str | Path, port: int) -> remote:
     ...
 
 
-def gen_sh(*args, **kwargs) -> process | remote:  # noqa: C901
+def __gen_sh(*args, **kwargs) -> process | remote:  # noqa: C901
     """
     生成一个 process 或 remote 实例，支持多种调用方式：
 
@@ -108,6 +182,21 @@ def gen_sh(*args, **kwargs) -> process | remote:  # noqa: C901
         return process([config.ATTACHMENT, *config.RUNARGS.split(" ")], **kwargs)
 
     raise ValueError()
+
+
+def gen_sh(*args, **kwargs) -> process | remote:
+    """
+    生成一个 process 或 remote 实例，支持多种调用方式：
+
+    1. gen_sh() -> 使用命令行参数或默认配置
+    2. gen_sh(f) -> 使用指定文件创建 process
+    3. gen_sh(f_or_host) -> 根据参数类型创建 process 或 remote
+    4. gen_sh(host, port) -> 使用指定主机和端口创建 remote
+
+    返回值:
+        返回一个 process 或 remote 实例。
+    """
+    return SHWrapper(__gen_sh(*args, **kwargs))  # type: ignore
 
 
 def get_dbg_args() -> str:  # noqa: C901

@@ -21,6 +21,10 @@ def _find_instance_in_frame(ctx, name: str) -> tuple[str, process | remote] | No
     if not name:
         # 按插入顺序反向搜索最新实例
         for k, v in reversed(locals_items):
+            from .gen_sh import SHWrapper
+
+            if isinstance(v, SHWrapper):
+                v = v.target
             if isinstance(v, (process, remote)) and _is_instance_valid(v):
                 return k, v
     else:
